@@ -61,21 +61,46 @@ export default function UploadContentPage() {
     e.preventDefault();
     setUploading(true);
 
-    // Simulate upload
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("topic", topic);
+      formData.append("week", week);
+      formData.append("type", materialType);
+      formData.append("contentType", contentType);
+      tags.forEach(tag => formData.append("tags", tag));
+      files.forEach(file => formData.append("files", file));
 
-    setUploading(false);
-    setUploadSuccess(true);
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api";
+      const endpoint = contentType === "theory" ? "theory" : "lab";
+      
+      const response = await fetch(`${BACKEND_URL}/content/${endpoint}`, {
+        method: "POST",
+        body: formData,
+      });
 
-    // Reset after success
-    setTimeout(() => {
-      setUploadSuccess(false);
-      setTitle("");
-      setDescription("");
-      setTopic("");
-      setTags([]);
-      setFiles([]);
-    }, 3000);
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      setUploadSuccess(true);
+
+      // Reset after success
+      setTimeout(() => {
+        setUploadSuccess(false);
+        setTitle("");
+        setDescription("");
+        setTopic("");
+        setTags([]);
+        setFiles([]);
+      }, 3000);
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Failed to upload content. Please try again.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
