@@ -1,396 +1,236 @@
 "use client";
 
-import { Box, Button, Card, Dialog, Flex, Grid, Heading, Select, Table, Text, TextArea, TextField } from "@radix-ui/themes";
-import { useEffect, useState } from "react";
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaFileAlt, FaCode, FaFilePdf, FaSlideshare } from "react-icons/fa";
-import api from "@/util/api";
-import toast from "react-hot-toast";
+import { useState } from "react";
+import {
+  FaFolder,
+  FaBook,
+  FaFlask,
+  FaSearch,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaEye,
+  FaFileAlt,
+  FaFilePdf,
+  FaCode,
+} from "react-icons/fa";
+import { BiSolidSlideshow } from "react-icons/bi";
+import Link from "next/link";
 
-interface Content {
-  _id: string;
+interface ContentItem {
+  id: string;
   title: string;
-  description: string;
-  content: string;
-  category: "theory" | "lab";
-  type: "slide" | "pdf" | "code" | "note" | "reference";
+  type: "theory" | "lab";
+  contentType: "slide" | "pdf" | "notes" | "code" | "reference";
   topic: string;
-  week: number | null;
+  week: number;
   tags: string[];
-  language?: string;
+  status: "published" | "draft";
+  views: number;
   createdAt: string;
+  updatedAt: string;
 }
 
-const TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  slide: FaSlideshare,
+const dummyContent: ContentItem[] = [
+  {
+    id: "1",
+    title: "Introduction to Machine Learning",
+    type: "theory",
+    contentType: "slide",
+    topic: "Machine Learning Basics",
+    week: 1,
+    tags: ["ML", "Introduction"],
+    status: "published",
+    views: 245,
+    createdAt: "2024-01-15",
+    updatedAt: "2024-01-15",
+  },
+  {
+    id: "2",
+    title: "Python Data Structures Lab",
+    type: "lab",
+    contentType: "code",
+    topic: "Data Structures",
+    week: 1,
+    tags: ["Python", "Data Structures"],
+    status: "published",
+    views: 189,
+    createdAt: "2024-01-16",
+    updatedAt: "2024-01-18",
+  },
+  {
+    id: "3",
+    title: "Neural Networks Fundamentals",
+    type: "theory",
+    contentType: "pdf",
+    topic: "Deep Learning",
+    week: 2,
+    tags: ["Neural Networks", "Deep Learning"],
+    status: "published",
+    views: 312,
+    createdAt: "2024-01-22",
+    updatedAt: "2024-01-22",
+  },
+];
+
+const contentTypeIcons: Record<string, React.ComponentType<{className?: string}>> = {
+  slide: BiSolidSlideshow,
   pdf: FaFilePdf,
+  notes: FaFileAlt,
   code: FaCode,
-  note: FaFileAlt,
-  reference: FaFileAlt,
+  reference: FaBook,
 };
 
-export default function ContentPage() {
-  const [contents, setContents] = useState<Content[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingContent, setEditingContent] = useState<Content | null>(null);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    content: "",
-    category: "theory",
-    type: "note",
-    topic: "",
-    week: "",
-    tags: "",
-    language: "python",
+const contentTypeColors: Record<string, string> = {
+  slide: "bg-blue-100 text-blue-600",
+  pdf: "bg-red-100 text-red-600",
+  notes: "bg-green-100 text-green-600",
+  code: "bg-orange-100 text-orange-600",
+  reference: "bg-purple-100 text-purple-600",
+};
+
+export default function ContentManagerPage() {
+  const [content] = useState<ContentItem[]>(dummyContent);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+
+  const filteredContent = content.filter((item) => {
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.topic.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = filterType === "all" || item.type === filterType;
+    const matchesStatus = filterStatus === "all" || item.status === filterStatus;
+    return matchesSearch && matchesType && matchesStatus;
   });
 
-  const fetchContents = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (search) params.append("search", search);
-      if (categoryFilter !== "all") params.append("category", categoryFilter);
-      params.append("limit", "50");
-
-      const response = await api.get(`/api/content?${params.toString()}`);
-      setContents(response.data.data || []);
-    } catch (error) {
-      console.error("Error fetching content:", error);
-      toast.error("Failed to fetch content");
-    } finally {
-      setLoading(false);
-    }
+  const stats = {
+    total: content.length,
+    theory: content.filter((c) => c.type === "theory").length,
+    lab: content.filter((c) => c.type === "lab").length,
+    published: content.filter((c) => c.status === "published").length,
   };
-
-  useEffect(() => {
-    fetchContents();
-  }, [categoryFilter]);
-
-  const handleSearch = () => {
-    fetchContents();
-  };
-
-  const handleOpenDialog = (content?: Content) => {
-    if (content) {
-      setEditingContent(content);
-      setFormData({
-        title: content.title,
-        description: content.description,
-        content: content.content,
-        category: content.category,
-        type: content.type,
-        topic: content.topic,
-        week: content.week?.toString() || "",
-        tags: content.tags.join(", "),
-        language: content.language || "python",
-      });
-    } else {
-      setEditingContent(null);
-      setFormData({
-        title: "",
-        description: "",
-        content: "",
-        category: "theory",
-        type: "note",
-        topic: "",
-        week: "",
-        tags: "",
-        language: "python",
-      });
-    }
-    setDialogOpen(true);
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const payload = {
-        ...formData,
-        week: formData.week ? parseInt(formData.week) : null,
-        tags: formData.tags.split(",").map((t) => t.trim()).filter(Boolean),
-      };
-
-      if (editingContent) {
-        await api.put("/api/content", {
-          _id: editingContent._id,
-          ...payload,
-        });
-        toast.success("Content updated successfully");
-      } else {
-        await api.post("/api/content", payload);
-        toast.success("Content created successfully");
-      }
-      setDialogOpen(false);
-      fetchContents();
-    } catch (error) {
-      console.error("Error saving content:", error);
-      toast.error("Failed to save content");
-    }
-  };
-
-  const handleDelete = async (contentId: string) => {
-    if (!confirm("Are you sure you want to delete this content?")) return;
-    
-    try {
-      await api.delete(`/api/content?id=${contentId}`);
-      toast.success("Content deleted successfully");
-      fetchContents();
-    } catch (error) {
-      console.error("Error deleting content:", error);
-      toast.error("Failed to delete content");
-    }
-  };
-
-  const filteredContents = typeFilter === "all" 
-    ? contents 
-    : contents.filter((c) => c.type === typeFilter);
 
   return (
-    <Box className="p-6">
-      <Flex justify="between" align="center" className="mb-6">
-        <Heading size="7">Content Management</Heading>
-        <Button onClick={() => handleOpenDialog()} className="!cursor-pointer">
-          <FaPlus /> Add Content
-        </Button>
-      </Flex>
+    <div className="space-y-6 p-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-[var(--Primary)] to-[var(--Accent-default)] rounded-lg flex items-center justify-center">
+              <FaFolder className="text-white" />
+            </div>
+            Content Manager
+          </h1>
+          <p className="text-gray-600 mt-1">Manage all course materials</p>
+        </div>
+        <Link href="/admin/upload" className="flex items-center gap-2 px-4 py-2 bg-[var(--Primary)] text-white rounded-lg hover:bg-[var(--Primary-dark)] transition-colors">
+          <FaPlus /> Add New Content
+        </Link>
+      </div>
 
-      {/* Filters */}
-      <Card className="p-4 mb-6">
-        <Flex gap="4" align="end" wrap="wrap">
-          <Box className="flex-1 min-w-[200px]">
-            <Text className="text-sm mb-2 block">Search</Text>
-            <TextField.Root
-              placeholder="Search by title, topic, or tags..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "Total", value: stats.total, icon: FaFolder, color: "text-[var(--Primary)]" },
+          { label: "Theory", value: stats.theory, icon: FaBook, color: "text-blue-500" },
+          { label: "Lab", value: stats.lab, icon: FaFlask, color: "text-green-500" },
+          { label: "Published", value: stats.published, icon: FaEye, color: "text-purple-500" },
+        ].map((stat, i) => (
+          <div key={i} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">{stat.label}</p>
+                <p className="text-2xl font-bold">{stat.value}</p>
+              </div>
+              <stat.icon className={`w-8 h-8 ${stat.color}`} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search content..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--Primary)]"
             />
-          </Box>
-          <Box>
-            <Text className="text-sm mb-2 block">Category</Text>
-            <Select.Root value={categoryFilter} onValueChange={setCategoryFilter}>
-              <Select.Trigger />
-              <Select.Content>
-                <Select.Item value="all">All Categories</Select.Item>
-                <Select.Item value="theory">Theory</Select.Item>
-                <Select.Item value="lab">Lab</Select.Item>
-              </Select.Content>
-            </Select.Root>
-          </Box>
-          <Box>
-            <Text className="text-sm mb-2 block">Type</Text>
-            <Select.Root value={typeFilter} onValueChange={setTypeFilter}>
-              <Select.Trigger />
-              <Select.Content>
-                <Select.Item value="all">All Types</Select.Item>
-                <Select.Item value="slide">Slides</Select.Item>
-                <Select.Item value="pdf">PDFs</Select.Item>
-                <Select.Item value="code">Code</Select.Item>
-                <Select.Item value="note">Notes</Select.Item>
-                <Select.Item value="reference">References</Select.Item>
-              </Select.Content>
-            </Select.Root>
-          </Box>
-          <Button onClick={handleSearch} className="!cursor-pointer">
-            <FaSearch /> Search
-          </Button>
-        </Flex>
-      </Card>
+          </div>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="px-4 py-2 border border-gray-200 rounded-lg"
+          >
+            <option value="all">All Types</option>
+            <option value="theory">Theory</option>
+            <option value="lab">Lab</option>
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 border border-gray-200 rounded-lg"
+          >
+            <option value="all">All Status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
 
-      {/* Content Grid */}
-      {loading ? (
-        <Text className="text-center py-8">Loading...</Text>
-      ) : filteredContents.length === 0 ? (
-        <Card className="p-8 text-center">
-          <Text>No content found. Start by adding new content.</Text>
-        </Card>
-      ) : (
-        <Grid columns={{ initial: "1", md: "2", lg: "3" }} gap="4">
-          {filteredContents.map((content) => {
-            const TypeIcon = TYPE_ICONS[content.type] || FaFileAlt;
-            return (
-              <Card key={content._id} className="p-4">
-                <Flex direction="column" gap="2">
-                  <Flex justify="between" align="start">
-                    <Flex align="center" gap="2">
-                      <TypeIcon className="text-[var(--Accent-default)]" />
-                      <Text className={`px-2 py-0.5 rounded text-xs ${
-                        content.category === "theory" 
-                          ? "bg-blue-100 text-blue-700" 
-                          : "bg-green-100 text-green-700"
-                      }`}>
-                        {content.category}
-                      </Text>
-                    </Flex>
-                    <Flex gap="1">
-                      <Button size="1" variant="ghost" onClick={() => handleOpenDialog(content)} className="!cursor-pointer">
-                        <FaEdit />
-                      </Button>
-                      <Button size="1" variant="ghost" color="red" onClick={() => handleDelete(content._id)} className="!cursor-pointer">
-                        <FaTrash />
-                      </Button>
-                    </Flex>
-                  </Flex>
-                  
-                  <Heading size="3">{content.title}</Heading>
-                  <Text className="text-gray-600 text-sm line-clamp-2">
-                    {content.description || "No description"}
-                  </Text>
-                  
-                  {content.topic && (
-                    <Text className="text-sm">
-                      <strong>Topic:</strong> {content.topic}
-                    </Text>
-                  )}
-                  
-                  {content.tags.length > 0 && (
-                    <Flex gap="1" wrap="wrap">
-                      {content.tags.slice(0, 3).map((tag, i) => (
-                        <span key={i} className="px-2 py-0.5 bg-gray-100 rounded text-xs">
-                          {tag}
-                        </span>
-                      ))}
-                      {content.tags.length > 3 && (
-                        <span className="text-xs text-gray-500">+{content.tags.length - 3}</span>
-                      )}
-                    </Flex>
-                  )}
-                </Flex>
-              </Card>
-            );
-          })}
-        </Grid>
-      )}
-
-      {/* Add/Edit Dialog */}
-      <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
-        <Dialog.Content maxWidth="600px" className="max-h-[90vh] overflow-y-auto">
-          <Dialog.Title>{editingContent ? "Edit Content" : "Add New Content"}</Dialog.Title>
-          
-          <Flex direction="column" gap="3" className="mt-4">
-            <Box>
-              <Text className="text-sm mb-1 block">Title *</Text>
-              <TextField.Root
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Content title"
-              />
-            </Box>
-
-            <Flex gap="3">
-              <Box className="flex-1">
-                <Text className="text-sm mb-1 block">Category *</Text>
-                <Select.Root 
-                  value={formData.category} 
-                  onValueChange={(v) => setFormData({ ...formData, category: v })}
-                >
-                  <Select.Trigger className="w-full" />
-                  <Select.Content>
-                    <Select.Item value="theory">Theory</Select.Item>
-                    <Select.Item value="lab">Lab</Select.Item>
-                  </Select.Content>
-                </Select.Root>
-              </Box>
-              <Box className="flex-1">
-                <Text className="text-sm mb-1 block">Type *</Text>
-                <Select.Root 
-                  value={formData.type} 
-                  onValueChange={(v) => setFormData({ ...formData, type: v })}
-                >
-                  <Select.Trigger className="w-full" />
-                  <Select.Content>
-                    <Select.Item value="slide">Slide</Select.Item>
-                    <Select.Item value="pdf">PDF</Select.Item>
-                    <Select.Item value="code">Code</Select.Item>
-                    <Select.Item value="note">Note</Select.Item>
-                    <Select.Item value="reference">Reference</Select.Item>
-                  </Select.Content>
-                </Select.Root>
-              </Box>
-            </Flex>
-
-            <Box>
-              <Text className="text-sm mb-1 block">Topic</Text>
-              <TextField.Root
-                value={formData.topic}
-                onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                placeholder="Topic name"
-              />
-            </Box>
-
-            <Flex gap="3">
-              <Box className="flex-1">
-                <Text className="text-sm mb-1 block">Week</Text>
-                <TextField.Root
-                  type="number"
-                  value={formData.week}
-                  onChange={(e) => setFormData({ ...formData, week: e.target.value })}
-                  placeholder="Week number"
-                />
-              </Box>
-              {formData.category === "lab" && (
-                <Box className="flex-1">
-                  <Text className="text-sm mb-1 block">Language</Text>
-                  <Select.Root 
-                    value={formData.language} 
-                    onValueChange={(v) => setFormData({ ...formData, language: v })}
-                  >
-                    <Select.Trigger className="w-full" />
-                    <Select.Content>
-                      <Select.Item value="python">Python</Select.Item>
-                      <Select.Item value="javascript">JavaScript</Select.Item>
-                      <Select.Item value="java">Java</Select.Item>
-                      <Select.Item value="cpp">C++</Select.Item>
-                      <Select.Item value="c">C</Select.Item>
-                    </Select.Content>
-                  </Select.Root>
-                </Box>
-              )}
-            </Flex>
-
-            <Box>
-              <Text className="text-sm mb-1 block">Tags (comma separated)</Text>
-              <TextField.Root
-                value={formData.tags}
-                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                placeholder="tag1, tag2, tag3"
-              />
-            </Box>
-
-            <Box>
-              <Text className="text-sm mb-1 block">Description</Text>
-              <TextArea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Brief description"
-                rows={2}
-              />
-            </Box>
-
-            <Box>
-              <Text className="text-sm mb-1 block">Content</Text>
-              <TextArea
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                placeholder="Main content (markdown supported)"
-                rows={8}
-              />
-            </Box>
-          </Flex>
-
-          <Flex gap="3" mt="4" justify="end">
-            <Dialog.Close>
-              <Button variant="soft" color="gray" className="!cursor-pointer">Cancel</Button>
-            </Dialog.Close>
-            <Button onClick={handleSubmit} className="!cursor-pointer">
-              {editingContent ? "Update" : "Create"}
-            </Button>
-          </Flex>
-        </Dialog.Content>
-      </Dialog.Root>
-    </Box>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Content</th>
+              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Type</th>
+              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Topic</th>
+              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Status</th>
+              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredContent.map((item) => {
+              const ContentIcon = contentTypeIcons[item.contentType];
+              return (
+                <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${contentTypeColors[item.contentType]}`}>
+                        <ContentIcon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{item.title}</p>
+                        <p className="text-xs text-gray-500">Week {item.week}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.type === "theory" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
+                      {item.type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{item.topic}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.status === "published" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                      {item.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <button className="p-2 hover:bg-gray-100 rounded-lg"><FaEye className="w-4 h-4 text-gray-500" /></button>
+                      <button className="p-2 hover:bg-gray-100 rounded-lg"><FaEdit className="w-4 h-4 text-blue-500" /></button>
+                      <button className="p-2 hover:bg-red-50 rounded-lg"><FaTrash className="w-4 h-4 text-red-500" /></button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

@@ -1,254 +1,230 @@
 "use client";
 
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { ResumeCard, ModuleSection, Icon, Button } from "@/components/ui";
-import FlagSelector from "@/components/ui/flag-selector/FlagSelector";
-import Spinner from "@/components/ui/spinner/Spinner";
-import { useCmsByKey } from "@/hooks/queries/useCmsQueries";
-import { useEnrollments } from "@/hooks/queries/useEnrollmentQueries";
-import { parseFilters } from "@/util/parseFilter";
-import { Enroll } from "@/zustand/types/enroll";
-
+import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { useIntl } from "react-intl";
+import {
+  FaBook,
+  FaSearch,
+  FaRobot,
+  FaCheckCircle,
+  FaComments,
+  FaFlask,
+  FaArrowRight,
+  FaFileAlt,
+  FaCode,
+  FaLightbulb,
+  FaClock,
+} from "react-icons/fa";
 
-import { Swiper, SwiperSlide } from "swiper/react";
+const features = [
+  {
+    title: "Theory Materials",
+    description: "Access lecture slides, PDFs, and supplementary notes organized by topics and weeks.",
+    href: "/student/student-dashboard/theory",
+    icon: FaBook,
+    color: "from-blue-500 to-blue-600",
+    stats: "50+ Resources",
+  },
+  {
+    title: "Lab Materials",
+    description: "Browse code files, exercises, and programming resources for hands-on learning.",
+    href: "/student/student-dashboard/lab",
+    icon: FaFlask,
+    color: "from-green-500 to-green-600",
+    stats: "30+ Lab Files",
+  },
+  {
+    title: "Smart Search",
+    description: "Use AI-powered semantic search to find relevant content across all course materials.",
+    href: "/student/student-dashboard/search",
+    icon: FaSearch,
+    color: "from-purple-500 to-purple-600",
+    stats: "RAG-Based",
+  },
+  {
+    title: "AI Generate",
+    description: "Generate new learning materials, notes, or code based on course topics.",
+    href: "/student/student-dashboard/generate",
+    icon: FaRobot,
+    color: "from-orange-500 to-orange-600",
+    stats: "GPT Powered",
+  },
+  {
+    title: "Validation",
+    description: "Validate and evaluate AI-generated content for accuracy and correctness.",
+    href: "/student/student-dashboard/validate",
+    icon: FaCheckCircle,
+    color: "from-teal-500 to-teal-600",
+    stats: "Quality Check",
+  },
+  {
+    title: "AI Chat",
+    description: "Interact with an AI assistant for explanations, summaries, and questions.",
+    href: "/student/student-dashboard/chat",
+    icon: FaComments,
+    color: "from-pink-500 to-pink-600",
+    stats: "24/7 Available",
+  },
+];
 
-// Import Swiper styles
-import "swiper/css";
-import "swiper/css/pagination";
-
-// import required modules
-import { Pagination, Autoplay } from "swiper/modules";
-
-// Custom styles for Swiper pagination
-const swiperStyles = `
-  .custom-swiper .swiper-pagination {
-    position: relative !important;
-    bottom: auto !important;
-    margin-top: 1rem;
-  }
-  .custom-swiper .swiper-pagination-bullet {
-    background-color: var(--Primary);
-    opacity: 0.5;
-  }
-  .custom-swiper .swiper-pagination-bullet-active {
-    background-color: var(--Accent-default);
-    opacity: 1;
-  }
-`;
+const recentActivities = [
+  {
+    title: "Introduction to Machine Learning",
+    type: "Theory",
+    icon: FaFileAlt,
+    time: "2 hours ago",
+  },
+  {
+    title: "Python Data Structures Lab",
+    type: "Lab",
+    icon: FaCode,
+    time: "Yesterday",
+  },
+  {
+    title: "Neural Networks Overview",
+    type: "Generated",
+    icon: FaLightbulb,
+    time: "2 days ago",
+  },
+];
 
 export default function StudentDashboard() {
-  const intl = useIntl();
-  const [gotToUpcomingModules, setGotToUpcomingModules] = useState(false);
-  const [viewWorkshops, setViewWorkshops] = useState(false);
-  const {
-    data: upcomingModules,
-    isLoading: isLoadingUpcomingModules,
-    error: errorUpcomingModules,
-  } = useCmsByKey("upcoming-module");
+  const { user } = useAuth();
 
-  const limit = 100;
-
-  const searchParams = useSearchParams();
-
-  const filters = useMemo(
-    () =>
-      parseFilters(searchParams ?? new URLSearchParams(), { page: 1, limit }),
-    [searchParams, limit]
-  );
-
-  const {
-    data: enrolls,
-    isLoading,
-    refetch,
-    isFetching,
-  } = useEnrollments(filters, {
-    placeholderData: (prev) => prev,
-  });
-  const [allModules, setAllmodules] = useState<Enroll[]>([]);
-
-  useEffect(() => {
-    if (!isLoading && enrolls) {
-      setAllmodules(enrolls.data);
-    }
-  }, [isLoading, enrolls]);
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
-  if (isLoading || isFetching) {
-    return <LoadingSpinner />;
-  } else if (!isLoading && enrolls?.data.length === 0) {
-    return (
-      <div className="my-12 md:my-32 ">
-        <div className="grid gap-12 justify-items-center">
-          <Icon name="no-enrolls" className="size-45 md:size-84" />
-          <div className="grid gap-7 md:gap-12 justify-items-center">
-            <div className="grid gap-4 text-center">
-              {" "}
-              <h2 className="max-w-[500px] text-3xl md:text-5xl font-semibold ">
-                {intl.formatMessage({ id: "dashboard.noModules.title" })}
-              </h2>
-              <p className="text-[var(--Primary-dark)]">
-                {intl.formatMessage({ id: "dashboard.noModules.description" })}
-              </p>
-            </div>
-            <div className="flex max-md:flex-col gap-4">
-              <Link href={"/student/student-dashboard/upcoming-workshops"}>
-                <Button>
-                  {intl.formatMessage({ id: "button.exploreWorkshops" })}
-                </Button>
-              </Link>
-              <Button variant="light">
-                {intl.formatMessage({ id: "button.getSupport" })}
-              </Button>
-            </div>
-          </div>
+  return (
+    <div className="space-y-8">
+      {/* Welcome Header */}
+      <div className="bg-gradient-to-r from-[var(--Primary)] to-[var(--Accent-default)] rounded-2xl p-8 text-white">
+        <h1 className="text-3xl font-bold mb-2">
+          Welcome back, {user?.name || "Student"}! 👋
+        </h1>
+        <p className="text-white/80 text-lg">
+          Your AI-powered learning journey continues. Explore course materials, generate content, and get instant help.
+        </p>
+        <div className="flex gap-4 mt-6">
+          <Link
+            href="/student/student-dashboard/search"
+            className="bg-white/20 hover:bg-white/30 px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
+            <FaSearch /> Quick Search
+          </Link>
+          <Link
+            href="/student/student-dashboard/chat"
+            className="bg-white text-[var(--Primary)] px-6 py-3 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
+          >
+            <FaComments /> Start Chat
+          </Link>
         </div>
       </div>
-    );
-  } else {
-    return (
-      <>
-        <style>{swiperStyles}</style>
-        <div className="max-w-[1200px] mx-auto  space-y-10">
-          <section className="block xl:hidden">
-            <ResumeCard property1="default" enrolls={allModules} />
-          </section>
-          <div className="grid grid-cols-1 xl:grid-cols-5 xl:gap-6 mt-10 mb-20 ">
-            {/* Left column: main content */}
-            <main className="lg:col-span-3 order-2 xl:order-1 ">
-              <section className="xl:block hidden">
-                <ResumeCard property1="default" enrolls={allModules} />
-              </section>
 
-              <ModuleSection allModules={allModules} />
-            </main>
-
-            {/* Right column: sidebar */}
-            <aside className=" max-xl:grid md:max-xl:grid-cols-1 max-xl:mb-6 xl:col-span-2 xl:space-y-6 xl:order-2 order-1 w-full max-xl:gap-8">
-              <div className="flex  md:justify-between max-md:w-fit xl:mt-11">
-                <h2 className="text-xl font-bold text-[var(--Primary)]">
-                  {intl.formatMessage({
-                    id: "upcomingWorkshops.recentWorkshops",
-                  })}
-                </h2>
-                <Link
-                  className="max-md:hidden block"
-                  onClick={() => setViewWorkshops(true)}
-                  href={"/student/student-dashboard/upcoming-workshops"}
-                >
-                  <Button endIcon={viewWorkshops && <Spinner />}>
-                    {intl.formatMessage({
-                      id: "upcomingWorkshops.viewAllWorkshops",
-                    })}
-                  </Button>
-                </Link>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "Theory Topics", value: "24", icon: FaBook, color: "text-blue-500" },
+          { label: "Lab Exercises", value: "18", icon: FaFlask, color: "text-green-500" },
+          { label: "AI Generations", value: "12", icon: FaRobot, color: "text-orange-500" },
+          { label: "Chat Sessions", value: "45", icon: FaComments, color: "text-pink-500" },
+        ].map((stat, index) => (
+          <div key={index} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm">{stat.label}</p>
+                <p className="text-2xl font-bold mt-1">{stat.value}</p>
               </div>
-              {isLoadingUpcomingModules ? (
-                <LoadingSpinner />
-              ) : errorUpcomingModules ? (
-                <p className="text-red-500">
-                  {intl.formatMessage({
-                    id: "upcomingWorkshops.errorLoading",
-                  })}
-                </p>
-              ) : (
-                <div className="max-md:w-[90%]">
-                  <div className="xl:block hidden">
-                    <div className="grid gap-4 mt-6">
-                      {upcomingModules &&
-                        upcomingModules.slice(0, 4).map((module) => (
-                          <Link
-                            href={module.bookingUrl}
-                            key={module.id}
-                            target="_blank"
-                            className="p-6 group rounded-lg border border-[var(--Primary)] hover:border-[var(--Accent-light)] transition-all duration-300 ease-in-out grid gap-6"
-                          >
-                            <div className="flex items-center gap-2">
-                              <FlagSelector name={module.language} />
-                              <p>{module.language}</p>
-                            </div>
-                            <h2 className="font-semibold leading-[150%] tracking-[-0.02em] group-hover:text-[var(--Accent-default)] duration-300 transition-all ease-in-out">
-                              {module.title}
-                            </h2>
-                          </Link>
-                        ))}
-                    </div>
-                  </div>
-                  {/* slider */}
-                  <div className="xl:hidden block max-w-screen overflow-x-hidden items-start relative">
-                    <Swiper
-                      loop={true}
-                      autoplay={{ delay: 2000, disableOnInteraction: false }}
-                      pagination={{ clickable: true }}
-                      modules={[Pagination, Autoplay]}
-                      slidesPerView={1}
-                      spaceBetween={16}
-                      breakpoints={{
-                        480: { slidesPerView: 1, spaceBetween: 16 },
-                        640: { slidesPerView: 1, spaceBetween: 20 },
-                        768: { slidesPerView: 1, spaceBetween: 24 },
-                        1024: { slidesPerView: 1, spaceBetween: 24 },
-                      }}
-                      className="custom-swiper"
-                    >
-                      {upcomingModules &&
-                        upcomingModules.slice(0, 4).map((module) => (
-                          <SwiperSlide key={module.id}>
-                            <Link
-                              href={module.bookingUrl}
-                              target="_blank"
-                              className="p-6 group rounded-lg border border-[var(--Primary)] hover:border-[var(--Accent-light)] transition-all duration-300 ease-in-out grid gap-6 "
-                            >
-                              <div className="flex items-center gap-2">
-                                <FlagSelector name={module.language} />
-                                <p>{module.language}</p>
-                              </div>
-                              <h2 className="font-semibold leading-[150%] tracking-[-0.02em] group-hover:text-[var(--Accent-default)] duration-300 transition-all ease-in-out">
-                                {module.title}
-                              </h2>
-                            </Link>
-                          </SwiperSlide>
-                        ))}
-                    </Swiper>
-                  </div>
-                </div>
-              )}
+              <stat.icon className={`w-8 h-8 ${stat.color}`} />
+            </div>
+          </div>
+        ))}
+      </div>
 
+      {/* Feature Cards */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Platform Features</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
               <Link
-                href={`/student/student-dashboard/upcoming-workshops`}
-                onClick={() => setGotToUpcomingModules(!gotToUpcomingModules)}
-                className={`p-6 ${
-                  gotToUpcomingModules
-                    ? "bg-[var(--Accent-light)]"
-                    : "bg-[var(--Primary-light)]"
-                } border border-[var(--Primary-light)] hover:border-[var(--Accent-default)]  transition-all duration-300 ease-in-out rounded-[9px] flex items-center space-x-4 cursor-pointer max-md:w-[90%]`}
+                key={index}
+                href={feature.href}
+                className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group"
               >
-                <div className="bg-[var(--Accent-default)] p-4 rounded-full w-fit">
-                  {gotToUpcomingModules ? (
-                    <Spinner className="!size-[50px]" />
-                  ) : (
-                    <Icon name="graduation" className="size-[58px]" />
-                  )}
+                <div
+                  className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4`}
+                >
+                  <Icon className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex flex-col  space-y-2.5">
-                  <h2 className="text-2xl font-bold text-[var(--Accent-default)]">
-                    {intl.formatMessage({ id: "dashboard.workshops" })}
-                  </h2>
-                  <h2 className="text-[var(--Primary-dark)] text-xl ">
-                    {intl.formatMessage({ id: "dashboard.workshops.visit" })}
-                  </h2>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-2 group-hover:text-[var(--Primary)] transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-3">{feature.description}</p>
+                    <span className="inline-block text-xs px-3 py-1 bg-gray-100 rounded-full text-gray-600">
+                      {feature.stats}
+                    </span>
+                  </div>
+                  <FaArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[var(--Primary)] group-hover:translate-x-1 transition-all mt-1" />
                 </div>
               </Link>
-            </aside>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recent Activity & Tips */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Recent Activity */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+            <FaClock className="text-[var(--Primary)]" />
+            Recent Activity
+          </h3>
+          <div className="space-y-4">
+            {recentActivities.map((activity, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="w-10 h-10 bg-[var(--Primary-light)] rounded-lg flex items-center justify-center">
+                  <activity.icon className="w-5 h-5 text-[var(--Primary)]" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{activity.title}</p>
+                  <p className="text-xs text-gray-500">{activity.type}</p>
+                </div>
+                <span className="text-xs text-gray-400">{activity.time}</span>
+              </div>
+            ))}
           </div>
         </div>
-      </>
-    );
-  }
+
+        {/* Learning Tips */}
+        <div className="bg-gradient-to-br from-[var(--Primary-light)] to-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+            <FaLightbulb className="text-yellow-500" />
+            Learning Tips
+          </h3>
+          <ul className="space-y-3">
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 bg-[var(--Primary)] text-white rounded-full flex items-center justify-center text-xs shrink-0">1</span>
+              <p className="text-sm text-gray-700">Use <strong>Smart Search</strong> to find specific concepts across all materials.</p>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 bg-[var(--Primary)] text-white rounded-full flex items-center justify-center text-xs shrink-0">2</span>
+              <p className="text-sm text-gray-700">Generate study notes using <strong>AI Generate</strong> for better revision.</p>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 bg-[var(--Primary)] text-white rounded-full flex items-center justify-center text-xs shrink-0">3</span>
+              <p className="text-sm text-gray-700">Always <strong>validate</strong> AI-generated code before using it.</p>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 bg-[var(--Primary)] text-white rounded-full flex items-center justify-center text-xs shrink-0">4</span>
+              <p className="text-sm text-gray-700">Ask the <strong>AI Chat</strong> for explanations and follow-up questions.</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
 }
