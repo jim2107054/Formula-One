@@ -495,6 +495,95 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Validation",
+      "description": "Code validation with syntax checking and AI-powered code review.",
+      "item": [
+        {
+          "name": "Validation Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", ""]
+            },
+            "description": "Get validation service status."
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Code - Valid Syntax",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"def add(a, b):\\n    return a + b\\n\\nresult = add(1, 2)\\nprint(result)\",\n  \"problem_context\": \"A function to add two numbers\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/validation/code",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "validation", "code"]
+            },
+            "description": "Validate Python code with valid syntax. Returns syntax check and AI review."
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Code - Syntax Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"def broken(\\n    return\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/validation/code",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "validation", "code"]
+            },
+            "description": "Test validation with code that has syntax errors. AI review is skipped."
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Code - Security Issue",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"import os\\nuser_input = input('Enter command: ')\\nos.system(user_input)\",\n  \"problem_context\": \"A script to run user commands\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/validation/code",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "validation", "code"]
+            },
+            "description": "Test validation with code that has security vulnerabilities. AI should detect the command injection risk."
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

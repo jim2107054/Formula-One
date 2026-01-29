@@ -10,7 +10,7 @@ This service provides:
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import gemini_rag_routes, generation_router, smart_agent
+from app.api import gemini_rag_routes, generation_router, smart_agent, validation
 
 # Load environment variables from .env file
 load_dotenv()
@@ -60,6 +60,10 @@ app.include_router(gemini_rag_routes.router,
 # Generation: Direct theory/lab generation (for manual control)
 app.include_router(generation_router.router,
                    prefix="/api/v1/generation", tags=["Generation"])
+
+# Validation: Code validation and AI review
+app.include_router(validation.router,
+                   prefix="/api/v1", tags=["Validation"])
 
 # Root endpoint
 
