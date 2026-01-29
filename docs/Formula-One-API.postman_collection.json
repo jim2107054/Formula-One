@@ -1,0 +1,779 @@
+{
+	"info": {
+		"_postman_id": "formula-one-api-collection",
+		"name": "Formula One - CMS & AI Backend API",
+		"description": "Complete API collection for Formula One educational platform including CMS, Authentication, Chat, and AI endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "backend_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "ai_backend_url",
+			"value": "http://localhost:8001",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health Checks",
+			"item": [
+				{
+					"name": "Backend Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/health",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "health"]
+						},
+						"description": "Check if the Node.js backend server is running and database is connected."
+					},
+					"response": []
+				},
+				{
+					"name": "AI Backend Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ai_backend_url}}/api/v1/health",
+							"host": ["{{ai_backend_url}}"],
+							"path": ["api", "v1", "health"]
+						},
+						"description": "Check if the Python AI backend server is running."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.token) {",
+									"    pm.collectionVariables.set('token', jsonData.data.token);",
+									"    console.log('Token saved to collection variables');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@formulaone.com\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{backend_url}}/api/auth/login",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login as admin user. Token will be automatically saved to collection variables."
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Student",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.token) {",
+									"    pm.collectionVariables.set('token', jsonData.data.token);",
+									"    console.log('Token saved to collection variables');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"student@formulaone.com\",\n    \"password\": \"student123\"\n}"
+						},
+						"url": {
+							"raw": "{{backend_url}}/api/auth/login",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login as student user."
+					},
+					"response": []
+				},
+				{
+					"name": "Register New User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"TestPassword123!\",\n    \"role\": \"student\"\n}"
+						},
+						"url": {
+							"raw": "{{backend_url}}/api/auth/register",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "auth", "register"]
+						},
+						"description": "Register a new user account."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{backend_url}}/api/users/me",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "users", "me"]
+						},
+						"description": "Get the profile of the currently authenticated user."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CMS - Content",
+			"item": [
+				{
+					"name": "Get All Content",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/cms/content",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "cms", "content"]
+						},
+						"description": "Get all content items from the CMS."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Theory Materials Only",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/cms/content?category=theory",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "cms", "content"],
+							"query": [
+								{
+									"key": "category",
+									"value": "theory"
+								}
+							]
+						},
+						"description": "Get only theory materials (slides, PDFs, notes)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lab Materials Only",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/cms/content?category=lab",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "cms", "content"],
+							"query": [
+								{
+									"key": "category",
+									"value": "lab"
+								}
+							]
+						},
+						"description": "Get only lab materials (code files)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Content by Week",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/cms/content?week=1",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "cms", "content"],
+							"query": [
+								{
+									"key": "week",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Filter content by week number."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Content by Topic",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/cms/content?topic=Data Structures",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "cms", "content"],
+							"query": [
+								{
+									"key": "topic",
+									"value": "Data Structures"
+								}
+							]
+						},
+						"description": "Filter content by topic."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Content by Type (Slides)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/cms/content?contentType=slides",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "cms", "content"],
+							"query": [
+								{
+									"key": "contentType",
+									"value": "slides"
+								}
+							]
+						},
+						"description": "Filter content by type (slides, pdf, code, notes)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Content by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/cms/content/:id",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "cms", "content", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "697b36b8a4ec1018afc0c18f",
+									"description": "Content ID from database"
+								}
+							]
+						},
+						"description": "Get a specific content item by its MongoDB ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Content (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Advanced Graph Algorithms\",\n    \"description\": \"Deep dive into advanced graph algorithms including Dijkstra, Bellman-Ford, and Floyd-Warshall algorithms with implementations.\",\n    \"category\": \"theory\",\n    \"metadata\": {\n        \"topic\": \"Graphs\",\n        \"week\": 8,\n        \"tags\": [\"Graphs\", \"Algorithms\"],\n        \"contentType\": \"slides\"\n    },\n    \"is_published\": true\n}"
+						},
+						"url": {
+							"raw": "{{backend_url}}/api/cms/content",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "cms", "content"]
+						},
+						"description": "Create a new content item. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Content (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated: Introduction to Data Structures\",\n    \"description\": \"Updated description with more comprehensive content.\",\n    \"metadata\": {\n        \"tags\": [\"Fundamentals\", \"Arrays\", \"Linked Lists\", \"Updated\"]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{backend_url}}/api/cms/content/:id",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "cms", "content", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "697b36b8a4ec1018afc0c18f",
+									"description": "Content ID to update"
+								}
+							]
+						},
+						"description": "Update an existing content item. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Content (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{backend_url}}/api/cms/content/:id",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "cms", "content", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "CONTENT_ID_HERE",
+									"description": "Content ID to delete"
+								}
+							]
+						},
+						"description": "Delete a content item. Requires admin authentication."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CMS - Categories",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/categories",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "categories"]
+						},
+						"description": "Get all content categories."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Category by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/categories/:id",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "CATEGORY_ID_HERE"
+								}
+							]
+						},
+						"description": "Get a specific category by ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CMS - Tags",
+			"item": [
+				{
+					"name": "Get All Tags",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/tags",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "tags"]
+						},
+						"description": "Get all content tags."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tag by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{backend_url}}/api/tags/:id",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "tags", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "TAG_ID_HERE"
+								}
+							]
+						},
+						"description": "Get a specific tag by ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Content API (Student)",
+			"item": [
+				{
+					"name": "Get Theory Materials",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{backend_url}}/api/content/theory",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "content", "theory"]
+						},
+						"description": "Get theory materials for students."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Lab Materials",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{backend_url}}/api/content/lab",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "content", "lab"]
+						},
+						"description": "Get lab materials for students."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chat - Backend Proxy",
+			"item": [
+				{
+					"name": "Send Chat Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Explain binary search trees and their time complexity\",\n    \"sessionId\": \"test-session-001\",\n    \"context\": []\n}"
+						},
+						"url": {
+							"raw": "{{backend_url}}/api/chat",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "chat"]
+						},
+						"description": "Send a chat message through the backend proxy to the AI backend."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Request via Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Search for materials about sorting algorithms\",\n    \"sessionId\": \"test-session-001\",\n    \"context\": []\n}"
+						},
+						"url": {
+							"raw": "{{backend_url}}/api/chat",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "chat"]
+						},
+						"description": "Send a search query through the chat interface."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Content via Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Generate notes on dynamic programming with examples\",\n    \"sessionId\": \"test-session-001\",\n    \"context\": []\n}"
+						},
+						"url": {
+							"raw": "{{backend_url}}/api/chat",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "chat"]
+						},
+						"description": "Request content generation through the chat interface."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "AI Backend - Direct",
+			"item": [
+				{
+					"name": "AI Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ai_backend_url}}/api/v1/health",
+							"host": ["{{ai_backend_url}}"],
+							"path": ["api", "v1", "health"]
+						},
+						"description": "Check AI backend health status."
+					},
+					"response": []
+				},
+				{
+					"name": "AI Chat - Direct",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"What is a binary search tree?\",\n    \"session_id\": \"direct-test-001\",\n    \"context\": []\n}"
+						},
+						"url": {
+							"raw": "{{ai_backend_url}}/api/v1/chat",
+							"host": ["{{ai_backend_url}}"],
+							"path": ["api", "v1", "chat"]
+						},
+						"description": "Send message directly to AI backend."
+					},
+					"response": []
+				},
+				{
+					"name": "AI Search",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"binary trees\",\n    \"category\": \"theory\",\n    \"limit\": 5\n}"
+						},
+						"url": {
+							"raw": "{{ai_backend_url}}/api/v1/search",
+							"host": ["{{ai_backend_url}}"],
+							"path": ["api", "v1", "search"]
+						},
+						"description": "Search for content using AI backend."
+					},
+					"response": []
+				},
+				{
+					"name": "AI Generate Theory",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"topic\": \"Binary Search Trees\",\n    \"format\": \"notes\",\n    \"difficulty\": \"intermediate\"\n}"
+						},
+						"url": {
+							"raw": "{{ai_backend_url}}/api/v1/generate/theory",
+							"host": ["{{ai_backend_url}}"],
+							"path": ["api", "v1", "generate", "theory"]
+						},
+						"description": "Generate theory content using AI."
+					},
+					"response": []
+				},
+				{
+					"name": "AI Validate Code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"def binary_search(arr, target):\\n    left, right = 0, len(arr) - 1\\n    while left <= right:\\n        mid = (left + right) // 2\\n        if arr[mid] == target:\\n            return mid\\n        elif arr[mid] < target:\\n            left = mid + 1\\n        else:\\n            right = mid - 1\\n    return -1\",\n    \"language\": \"python\",\n    \"problem_description\": \"Implement binary search algorithm\"\n}"
+						},
+						"url": {
+							"raw": "{{ai_backend_url}}/api/v1/validate",
+							"host": ["{{ai_backend_url}}"],
+							"path": ["api", "v1", "validate"]
+						},
+						"description": "Validate code using AI backend."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "RAG - Retrieval",
+			"item": [
+				{
+					"name": "RAG Query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": \"How do I implement a linked list?\",\n    \"top_k\": 3,\n    \"filters\": {\n        \"category\": \"lab\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{ai_backend_url}}/api/v1/rag/query",
+							"host": ["{{ai_backend_url}}"],
+							"path": ["api", "v1", "rag", "query"]
+						},
+						"description": "Query the RAG system for relevant content."
+					},
+					"response": []
+				},
+				{
+					"name": "RAG Ingest Document",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"document_id\": \"doc-001\",\n    \"content\": \"Binary Search Trees (BST) are a data structure that maintains sorted data and allows for efficient insertion, deletion, and lookup operations. The key property of a BST is that for any node, all values in its left subtree are less than the node's value, and all values in its right subtree are greater.\",\n    \"metadata\": {\n        \"title\": \"BST Overview\",\n        \"category\": \"theory\",\n        \"topic\": \"Trees\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{ai_backend_url}}/api/v1/rag/ingest",
+							"host": ["{{ai_backend_url}}"],
+							"path": ["api", "v1", "rag", "ingest"]
+						},
+						"description": "Ingest a document into the RAG system."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

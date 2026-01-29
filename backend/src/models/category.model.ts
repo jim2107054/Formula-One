@@ -24,14 +24,13 @@ const CategorySchema: Schema = new Schema(
 );
 
 // Auto-generate slug from title if not provided
-CategorySchema.pre("save", function (next) {
+CategorySchema.pre("save", async function () {
   if (!this.slug && this.title) {
     this.slug = (this.title as string)
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
   }
-  next();
 });
 
 export const CategoryModel = mongoose.model<ICategory>("Category", CategorySchema);
