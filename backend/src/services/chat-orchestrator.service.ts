@@ -7,7 +7,7 @@ export interface SendMessageResult {
 }
 
 const AI_BACKEND_URL =
-  process.env.AI_BACKEND_URL || "http://localhost:8001/api/v1";
+  process.env.AI_BACKEND_URL || "http://localhost:8000/api/v1";
 
 class ChatOrchestratorService {
   /**
