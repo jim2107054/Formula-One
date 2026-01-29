@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000/api";
 
 export interface TheoryMaterial {
   id: string;

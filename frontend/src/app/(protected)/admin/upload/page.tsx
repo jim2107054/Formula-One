@@ -72,7 +72,7 @@ export default function UploadContentPage() {
       tags.forEach(tag => formData.append("tags", tag));
       files.forEach(file => formData.append("files", file));
 
-      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api";
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000/api";
       const endpoint = contentType === "theory" ? "theory" : "lab";
       
       const response = await fetch(`${BACKEND_URL}/content/${endpoint}`, {

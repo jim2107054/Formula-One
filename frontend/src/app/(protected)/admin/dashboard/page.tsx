@@ -68,16 +68,16 @@ export default function AdminDashboard() {
       href: "/admin/ai-generate",
     },
     {
-      title: "Intelligent Search",
-      description: "Semantic search across all course materials with relevance-based results.",
+      title: "Analytics & Insights",
+      description: "View detailed analytics about user engagement, content performance, and platform usage.",
       icon: FaBook,
-      href: "/admin/search",
+      href: "/admin/analytics",
     },
     {
-      title: "Chat Assistant",
-      description: "AI-powered chat interface for answering questions and providing learning support.",
+      title: "System Settings",
+      description: "Configure platform settings, notifications, features, and system maintenance.",
       icon: FaComments,
-      href: "/admin/chat",
+      href: "/admin/settings",
     },
   ];
 
