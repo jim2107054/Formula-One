@@ -14,6 +14,7 @@ import { healthRoutes } from "./api/health.routes";
 import { authRoutes } from "./api/auth.routes";
 import { cmsRoutes } from "./api/cms.routes";
 import { chatRoutes } from "./api/chat.routes";
+import { contentRoutes } from "./api/content.routes";
 
 // Create Express application
 const app: Application = express();
@@ -41,6 +42,7 @@ app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/cms", cmsRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/content", contentRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

@@ -6,13 +6,13 @@ export default function Login() {
     <div className="flex max-w-7xl md:m-auto min-h-screen">
       <div className="flex md:items-center w-full md:justify-center xl:w-auto space-x-[100px]  mx-[52px] md:my-10">
         <LoginImageSection
-          imageSrc="/images/image-15-full.png"
+          imageSrc="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop"
           className="hidden xl:block"
         />
 
         <LoginForm
-          mainTitle="Welcome to the Neurofeedback Academy"
-          subtitle="The Institute for EEG Neurofeedback, IFEN, was founded in 2008 and is one of the leading educational centers for Neurofeedback in Germany and Europe. Its research and development department IFEN-Neuroscience develops useful tools and feedback applications for practitioners and researchers worldwide."
+          mainTitle="Welcome to EduAI Learning Platform"
+          subtitle="An AI-powered supplementary learning platform that enhances university courses by organizing content, enabling intelligent retrieval, generating validated learning materials, and providing a conversational interface for seamless interaction."
           buttonText="Login"
           mailLabel="Email"
           passwordLabel="Password"

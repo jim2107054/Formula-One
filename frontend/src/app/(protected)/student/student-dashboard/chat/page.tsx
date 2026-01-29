@@ -1,31 +1,89 @@
 "use client";
 
-import { Box, Button, Card, Flex, Heading, Text, TextArea, Tabs } from "@radix-ui/themes";
 import { useState, useRef, useEffect } from "react";
-import { FaPaperPlane, FaRobot, FaUser, FaTrash, FaSpinner, FaLightbulb, FaBook, FaCode } from "react-icons/fa";
-import api from "@/util/api";
-import toast from "react-hot-toast";
-import "@radix-ui/themes/styles.css";
-import { Theme } from "@radix-ui/themes";
+import {
+  FaComments,
+  FaPaperPlane,
+  FaRobot,
+  FaUser,
+  FaBook,
+  FaSearch,
+  FaMagic,
+  FaCheckCircle,
+  FaLightbulb,
+  FaHistory,
+  FaTrash,
+  FaPlus,
+} from "react-icons/fa";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Message {
+  id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  sources?: string[];
 }
 
-export default function StudentChatPage() {
+interface ChatSession {
+  id: string;
+  title: string;
+  lastMessage: string;
+  timestamp: Date;
+}
+
+const quickActions = [
+  {
+    icon: FaBook,
+    label: "Explain a concept",
+    prompt: "Can you explain the concept of ",
+  },
+  {
+    icon: FaSearch,
+    label: "Search materials",
+    prompt: "Find materials about ",
+  },
+  {
+    icon: FaMagic,
+    label: "Generate notes",
+    prompt: "Generate study notes for ",
+  },
+  {
+    icon: FaCheckCircle,
+    label: "Review my code",
+    prompt: "Please review this code and suggest improvements: ",
+  },
+];
+
+const sampleSessions: ChatSession[] = [
+  {
+    id: "1",
+    title: "Neural Networks Discussion",
+    lastMessage: "How does backpropagation work?",
+    timestamp: new Date(Date.now() - 3600000),
+  },
+  {
+    id: "2",
+    title: "Python Data Structures",
+    lastMessage: "Explain linked lists vs arrays",
+    timestamp: new Date(Date.now() - 86400000),
+  },
+  {
+    id: "3",
+    title: "Machine Learning Basics",
+    lastMessage: "What is gradient descent?",
+    timestamp: new Date(Date.now() - 172800000),
+  },
+];
+
+export default function ChatPage() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
-  const [mode, setMode] = useState<"chat" | "generate">("chat");
+  const [isTyping, setIsTyping] = useState(false);
+  const [sessions, setSessions] = useState<ChatSession[]>(sampleSessions);
+  const [activeSession, setActiveSession] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Generation state
-  const [genTopic, setGenTopic] = useState("");
-  const [genType, setGenType] = useState<"theory" | "lab">("theory");
-  const [generating, setGenerating] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState("");
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -35,317 +93,278 @@ export default function StudentChatPage() {
     scrollToBottom();
   }, [messages]);
 
+  const generateResponse = async (userMessage: string): Promise<string> => {
+    // Simulate AI response generation
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    const responses: Record<string, string> = {
+      neural:
+        "Neural networks are computing systems inspired by biological neural networks in the human brain. They consist of interconnected nodes (neurons) organized in layers:\n\n**Key Components:**\n1. **Input Layer** - Receives the initial data\n2. **Hidden Layers** - Process information through weighted connections\n3. **Output Layer** - Produces the final result\n\n**How They Learn:**\nNeural networks learn by adjusting the weights between neurons based on the error of their predictions. This process is called training and uses algorithms like backpropagation.\n\nWould you like me to explain any specific aspect in more detail?",
+      python:
+        "Python is an excellent language for beginners and experts alike! Here are the fundamentals:\n\n**Data Types:**\n- `int`, `float`, `str`, `bool`\n- `list`, `tuple`, `dict`, `set`\n\n**Control Flow:**\n```python\nif condition:\n    # code\nelif other_condition:\n    # code\nelse:\n    # code\n```\n\n**Functions:**\n```python\ndef my_function(param):\n    return result\n```\n\nWant me to generate practice exercises?",
+      default:
+        "That's a great question! Based on the course materials, here's what I found:\n\nThis topic is covered in **Week 3** of the course. The key concepts include:\n\n1. **Fundamental Principles** - Understanding the basics\n2. **Practical Applications** - How it's used in real scenarios\n3. **Common Patterns** - Best practices to follow\n\nI've referenced the following course materials:\n- Lecture Slides (Week 3)\n- Lab Exercise 3.2\n- Supplementary Notes\n\nWould you like me to elaborate on any of these points?",
+    };
+
+    const lowercaseMessage = userMessage.toLowerCase();
+    if (lowercaseMessage.includes("neural") || lowercaseMessage.includes("network")) {
+      return responses.neural;
+    } else if (lowercaseMessage.includes("python") || lowercaseMessage.includes("code")) {
+      return responses.python;
+    }
+    return responses.default;
+  };
+
   const handleSend = async () => {
-    if (!input.trim() || sending) return;
+    if (!input.trim()) return;
 
     const userMessage: Message = {
+      id: Date.now().toString(),
       role: "user",
-      content: input.trim(),
+      content: input,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
-    setSending(true);
+    setIsTyping(true);
 
-    try {
-      const chatHistory = [...messages, userMessage].map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
+    const response = await generateResponse(input);
 
-      const response = await api.post("/api/chat", {
-        messages: chatHistory,
-        includeContext: true,
-      });
+    const assistantMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      role: "assistant",
+      content: response,
+      timestamp: new Date(),
+      sources: ["Week 3 Lecture Slides", "Lab Exercise 3.2"],
+    };
 
-      if (response.data.success) {
-        const assistantMessage: Message = {
-          role: "assistant",
-          content: response.data.data.message,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-      }
-    } catch (error) {
-      console.error("Chat error:", error);
-      toast.error("Failed to send message");
-    } finally {
-      setSending(false);
-    }
+    setMessages((prev) => [...prev, assistantMessage]);
+    setIsTyping(false);
   };
 
-  const handleGenerate = async () => {
-    if (!genTopic.trim() || generating) return;
-
-    setGenerating(true);
-    setGeneratedContent("");
-
-    try {
-      const response = await api.post("/api/generate", {
-        topic: genTopic,
-        type: genType,
-        format: genType === "theory" ? "notes" : undefined,
-        language: genType === "lab" ? "python" : undefined,
-      });
-
-      if (response.data.success) {
-        setGeneratedContent(response.data.data.content);
-        toast.success("Content generated!");
-      }
-    } catch (error) {
-      console.error("Generation error:", error);
-      toast.error("Failed to generate content");
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  const handleClear = () => {
-    setMessages([]);
-    toast.success("Chat cleared");
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
-  const suggestedQuestions = [
-    "Explain the concept of recursion",
-    "What are the key differences between arrays and linked lists?",
-    "Help me understand object-oriented programming",
-    "Can you summarize database normalization?",
-    "What are the best practices for writing clean code?",
-  ];
+  const handleQuickAction = (prompt: string) => {
+    setInput(prompt);
+  };
+
+  const startNewChat = () => {
+    setMessages([]);
+    setActiveSession(null);
+  };
 
   return (
-    <Theme>
-      <Box className="p-6 h-[calc(100vh-120px)] flex flex-col">
-        <Flex justify="between" align="center" className="mb-4">
-          <Box>
-            <Heading size="7">AI Learning Assistant</Heading>
-            <Text className="text-gray-600">
-              Get help with your studies, explanations, and generate learning materials.
-            </Text>
-          </Box>
-        </Flex>
+    <div className="flex h-[calc(100vh-8rem)] gap-6">
+      {/* Sidebar - Chat History */}
+      <div className="hidden lg:flex w-72 flex-col bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-4 border-b border-gray-100">
+          <button
+            onClick={startNewChat}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--Primary)] text-white rounded-lg hover:bg-[var(--Primary-dark)] transition-colors"
+          >
+            <FaPlus />
+            New Chat
+          </button>
+        </div>
 
-        {/* Mode Tabs */}
-        <Tabs.Root value={mode} onValueChange={(v) => setMode(v as "chat" | "generate")} className="mb-4">
-          <Tabs.List>
-            <Tabs.Trigger value="chat">
-              <FaRobot className="mr-2" /> Chat Assistant
-            </Tabs.Trigger>
-            <Tabs.Trigger value="generate">
-              <FaLightbulb className="mr-2" /> Generate Content
-            </Tabs.Trigger>
-          </Tabs.List>
-        </Tabs.Root>
+        <div className="flex-1 overflow-y-auto p-4">
+          <h3 className="text-xs font-medium text-gray-500 uppercase mb-3 flex items-center gap-2">
+            <FaHistory className="w-3 h-3" />
+            Recent Chats
+          </h3>
+          <div className="space-y-2">
+            {sessions.map((session) => (
+              <button
+                key={session.id}
+                onClick={() => setActiveSession(session.id)}
+                className={`w-full text-left p-3 rounded-lg transition-colors ${
+                  activeSession === session.id
+                    ? "bg-[var(--Primary-light)]"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <p className="font-medium text-sm truncate">{session.title}</p>
+                <p className="text-xs text-gray-500 truncate mt-1">
+                  {session.lastMessage}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-        {mode === "chat" ? (
-          <>
-            {/* Chat Messages */}
-            <Card className="flex-1 p-4 mb-4 overflow-hidden flex flex-col">
-              <Flex justify="end" className="mb-2">
-                {messages.length > 0 && (
-                  <Button variant="ghost" size="1" color="red" onClick={handleClear} className="!cursor-pointer">
-                    <FaTrash /> Clear
-                  </Button>
-                )}
-              </Flex>
-              
-              <Box className="flex-1 overflow-y-auto">
-                {messages.length === 0 ? (
-                  <Flex direction="column" align="center" justify="center" className="h-full">
-                    <FaRobot className="text-6xl text-gray-300 mb-4" />
-                    <Heading size="4" className="text-gray-400 mb-2">Ask Me Anything!</Heading>
-                    <Text className="text-gray-400 mb-6 text-center max-w-md">
-                      I can help you understand course materials, explain concepts, or answer questions.
-                    </Text>
-                    
-                    {/* Suggested Questions */}
-                    <Box className="w-full max-w-lg">
-                      <Text className="text-sm text-gray-500 mb-2">Try asking:</Text>
-                      <Flex direction="column" gap="2">
-                        {suggestedQuestions.map((question, i) => (
-                          <Button 
-                            key={i}
-                            variant="soft" 
-                            className="!cursor-pointer justify-start text-left"
-                            onClick={() => setInput(question)}
-                          >
-                            💡 {question}
-                          </Button>
-                        ))}
-                      </Flex>
-                    </Box>
-                  </Flex>
-                ) : (
-                  <Flex direction="column" gap="4" className="py-2">
-                    {messages.map((message, index) => (
-                      <Flex 
-                        key={index}
-                        justify={message.role === "user" ? "end" : "start"}
-                        gap="2"
-                      >
-                        {message.role === "assistant" && (
-                          <Box className="p-2 rounded-full bg-purple-100 h-fit">
-                            <FaRobot className="text-purple-600" />
-                          </Box>
-                        )}
-                        <Box 
-                          className={`max-w-[70%] p-4 rounded-lg ${
-                            message.role === "user" 
-                              ? "bg-[var(--Accent-default)] text-white" 
-                              : "bg-gray-100"
-                          }`}
-                        >
-                          <pre className="whitespace-pre-wrap text-sm font-sans">
-                            {message.content}
-                          </pre>
-                          <Text className={`text-xs mt-2 ${
-                            message.role === "user" ? "text-white/70" : "text-gray-400"
-                          }`}>
-                            {message.timestamp.toLocaleTimeString()}
-                          </Text>
-                        </Box>
-                        {message.role === "user" && (
-                          <Box className="p-2 rounded-full bg-[var(--Accent-light)] h-fit">
-                            <FaUser className="text-[var(--Accent-default)]" />
-                          </Box>
-                        )}
-                      </Flex>
-                    ))}
-                    {sending && (
-                      <Flex gap="2">
-                        <Box className="p-2 rounded-full bg-purple-100 h-fit">
-                          <FaRobot className="text-purple-600" />
-                        </Box>
-                        <Box className="bg-gray-100 p-4 rounded-lg">
-                          <FaSpinner className="animate-spin" />
-                        </Box>
-                      </Flex>
-                    )}
-                    <div ref={messagesEndRef} />
-                  </Flex>
-                )}
-              </Box>
-            </Card>
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[var(--Primary)] to-[var(--Accent-default)]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+              <FaRobot className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-white">EduAI Assistant</h2>
+              <p className="text-white/70 text-sm">Ask anything about your courses</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1 px-3 py-1 bg-white/20 rounded-full text-white text-xs">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              Online
+            </span>
+          </div>
+        </div>
 
-            {/* Input Area */}
-            <Card className="p-4">
-              <Flex gap="3">
-                <Box className="flex-1">
-                  <TextArea
-                    placeholder="Type your question... (Press Enter to send)"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    rows={2}
-                    disabled={sending}
-                  />
-                </Box>
-                <Button 
-                  size="3"
-                  onClick={handleSend} 
-                  disabled={sending || !input.trim()}
-                  className="!cursor-pointer self-end"
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {messages.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6">
+                <FaComments className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                How can I help you today?
+              </h3>
+              <p className="text-gray-600 max-w-md mb-8">
+                I can help you search materials, explain concepts, generate notes,
+                and answer questions about your courses.
+              </p>
+
+              {/* Quick Actions */}
+              <div className="grid grid-cols-2 gap-3 max-w-lg">
+                {quickActions.map((action, index) => {
+                  const Icon = action.icon;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleQuickAction(action.prompt)}
+                      className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl text-left transition-colors group"
+                    >
+                      <div className="w-10 h-10 bg-[var(--Primary-light)] rounded-lg flex items-center justify-center group-hover:bg-[var(--Primary)] transition-colors">
+                        <Icon className="w-5 h-5 text-[var(--Primary)] group-hover:text-white transition-colors" />
+                      </div>
+                      <span className="text-sm font-medium">{action.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex gap-4 ${
+                    message.role === "user" ? "flex-row-reverse" : ""
+                  }`}
                 >
-                  {sending ? <FaSpinner className="animate-spin" /> : <FaPaperPlane />}
-                </Button>
-              </Flex>
-            </Card>
-          </>
-        ) : (
-          /* Generate Content Mode */
-          <Card className="flex-1 p-6 overflow-y-auto">
-            <Flex gap="6" direction={{ initial: "column", lg: "row" }}>
-              <Box className="flex-1">
-                <Heading size="4" className="mb-4">Generate Learning Materials</Heading>
-                
-                <Flex direction="column" gap="4">
-                  <Box>
-                    <Text className="text-sm mb-2 block font-medium">What do you want to learn?</Text>
-                    <TextArea
-                      value={genTopic}
-                      onChange={(e) => setGenTopic(e.target.value)}
-                      placeholder="Enter a topic, e.g., 'Explain sorting algorithms' or 'Create a linked list in Python'"
-                      rows={3}
-                    />
-                  </Box>
-
-                  <Flex gap="4">
-                    <Button 
-                      variant={genType === "theory" ? "solid" : "soft"}
-                      onClick={() => setGenType("theory")}
-                      className="!cursor-pointer flex-1"
-                    >
-                      <FaBook /> Theory Notes
-                    </Button>
-                    <Button 
-                      variant={genType === "lab" ? "solid" : "soft"}
-                      onClick={() => setGenType("lab")}
-                      className="!cursor-pointer flex-1"
-                    >
-                      <FaCode /> Code Example
-                    </Button>
-                  </Flex>
-
-                  <Button 
-                    size="3"
-                    onClick={handleGenerate}
-                    disabled={generating || !genTopic.trim()}
-                    className="!cursor-pointer"
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      message.role === "user"
+                        ? "bg-[var(--Primary)]"
+                        : "bg-gradient-to-br from-pink-500 to-pink-600"
+                    }`}
                   >
-                    {generating ? (
-                      <>
-                        <FaSpinner className="animate-spin" /> Generating...
-                      </>
+                    {message.role === "user" ? (
+                      <FaUser className="w-5 h-5 text-white" />
                     ) : (
-                      <>
-                        <FaLightbulb /> Generate Content
-                      </>
+                      <FaRobot className="w-5 h-5 text-white" />
                     )}
-                  </Button>
-                </Flex>
-              </Box>
+                  </div>
+                  <div
+                    className={`max-w-[70%] ${
+                      message.role === "user" ? "text-right" : ""
+                    }`}
+                  >
+                    <div
+                      className={`inline-block p-4 rounded-2xl ${
+                        message.role === "user"
+                          ? "bg-[var(--Primary)] text-white rounded-tr-none"
+                          : "bg-gray-100 rounded-tl-none"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    </div>
+                    {message.sources && message.role === "assistant" && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="text-xs text-gray-500">Sources:</span>
+                        {message.sources.map((source, index) => (
+                          <span
+                            key={index}
+                            className="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600"
+                          >
+                            {source}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-400 mt-1">
+                      {message.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {isTyping && (
+                <div className="flex gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center">
+                    <FaRobot className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="bg-gray-100 rounded-2xl rounded-tl-none p-4">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      />
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.4s" }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
 
-              <Box className="flex-[1.5]">
-                <Heading size="4" className="mb-4">Generated Content</Heading>
-                
-                {generating ? (
-                  <Flex align="center" justify="center" className="h-64">
-                    <Flex direction="column" align="center" gap="2">
-                      <FaSpinner className="animate-spin text-4xl text-purple-600" />
-                      <Text>Generating your content...</Text>
-                    </Flex>
-                  </Flex>
-                ) : generatedContent ? (
-                  <Box className={`rounded-lg p-4 max-h-[400px] overflow-y-auto ${
-                    genType === "lab" ? "bg-gray-900" : "bg-gray-50"
-                  }`}>
-                    <pre className={`whitespace-pre-wrap text-sm font-mono ${
-                      genType === "lab" ? "text-green-400" : "text-gray-800"
-                    }`}>
-                      {generatedContent}
-                    </pre>
-                  </Box>
-                ) : (
-                  <Flex align="center" justify="center" className="h-64 text-gray-400 bg-gray-50 rounded-lg">
-                    <Flex direction="column" align="center" gap="2">
-                      <FaLightbulb className="text-4xl" />
-                      <Text>Enter a topic and click Generate</Text>
-                    </Flex>
-                  </Flex>
-                )}
-              </Box>
-            </Flex>
-          </Card>
-        )}
-      </Box>
-    </Theme>
+        {/* Input Area */}
+        <div className="p-4 border-t border-gray-100">
+          <div className="flex items-end gap-3">
+            <div className="flex-1 relative">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask a question or request help..."
+                rows={1}
+                className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--Primary)] focus:border-transparent resize-none"
+                style={{ minHeight: "48px", maxHeight: "120px" }}
+              />
+            </div>
+            <button
+              onClick={handleSend}
+              disabled={!input.trim() || isTyping}
+              className="p-3 bg-[var(--Primary)] text-white rounded-xl hover:bg-[var(--Primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FaPaperPlane className="w-5 h-5" />
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-2 text-center">
+            <FaLightbulb className="inline w-3 h-3 mr-1" />
+            Responses are generated based on your course materials
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

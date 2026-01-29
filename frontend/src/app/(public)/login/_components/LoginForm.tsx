@@ -21,7 +21,7 @@ interface LoginFormProps {
 
 const LoginForm: React.FC<LoginFormProps> = ({
   className,
-  mainTitle = "Welcome to the Neurofeedback Academy",
+  mainTitle = "Welcome to EduAI Learning Platform",
   subtitle,
   mailLabel = "Email",
   passwordLabel = "Password",
@@ -39,10 +39,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
       const redirectDelay = setTimeout(() => {
         switch (userRole) {
           case 2: // admin
-            router.replace("/admin/user");
+            router.replace("/admin/content");
             break;
           case 1: // instructor
-            router.replace("/admin/module");
+            router.replace("/admin/content");
             break;
           case 0: // student
             router.replace("/student/student-dashboard");
@@ -83,7 +83,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
         className
       )}
     >
-      <Image src={"/images/logo.png"} width={77} height={28} alt="IFEN Logo" />
+      <div className="flex items-center gap-2">
+        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-lg flex items-center justify-center">
+          <span className="text-white font-bold text-xl">E</span>
+        </div>
+        <span className="text-xl font-bold text-[var(--Primary)]">EduAI</span>
+      </div>
 
       <h1 className="text-center text-black text-xl md:text-2xl font-semibold mt-8 md:mb-[29px]">
         {mainTitle}
