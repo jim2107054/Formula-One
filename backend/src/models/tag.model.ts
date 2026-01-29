@@ -22,14 +22,13 @@ const TagSchema: Schema = new Schema(
 );
 
 // Auto-generate slug from title if not provided
-TagSchema.pre("save", function (next) {
+TagSchema.pre("save", async function () {
   if (!this.slug && this.title) {
     this.slug = (this.title as string)
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
   }
-  next();
 });
 
 export const TagModel = mongoose.model<ITag>("Tag", TagSchema);
