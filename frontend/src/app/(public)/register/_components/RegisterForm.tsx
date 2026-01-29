@@ -116,7 +116,7 @@ export default function RegisterForm({
             Full Name <span className="text-red-500">*</span>
           </Text>
           <div className="relative">
-            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <TextField.Root
               size="3"
               name="name"
@@ -135,7 +135,7 @@ export default function RegisterForm({
             Email <span className="text-red-500">*</span>
           </Text>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <TextField.Root
               size="3"
               type="email"
@@ -168,7 +168,7 @@ export default function RegisterForm({
             Password <span className="text-red-500">*</span>
           </Text>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <TextField.Root
               size="3"
               type={showPassword ? "text" : "password"}
@@ -183,7 +183,7 @@ export default function RegisterForm({
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
             </button>
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function RegisterForm({
             Confirm Password <span className="text-red-500">*</span>
           </Text>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <TextField.Root
               size="3"
               type={showConfirmPassword ? "text" : "password"}
@@ -209,7 +209,7 @@ export default function RegisterForm({
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showConfirmPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
             </button>
           </div>
         </div>
