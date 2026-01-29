@@ -15,6 +15,9 @@ import { authRoutes } from "./api/auth.routes";
 import { cmsRoutes } from "./api/cms.routes";
 import { chatRoutes } from "./api/chat.routes";
 import { contentRoutes } from "./api/content.routes";
+import { userRoutes } from "./api/user.routes";
+import { categoryRoutes } from "./api/category.routes";
+import { tagRoutes } from "./api/tag.routes";
 
 // Create Express application
 const app: Application = express();
@@ -43,6 +46,12 @@ app.use("/api/auth", authRoutes);
 app.use("/api/cms", cmsRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/content", contentRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/category", categoryRoutes);
+app.use("/api/tags", tagRoutes);
+app.use("/api/tag", tagRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

@@ -31,8 +31,8 @@ export default function TheoryPage() {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await api.get("/api/content?category=theory&limit=50");
-        setContents(response.data.data || []);
+        const response = await api.get("/cms/content?category=theory&limit=50");
+        setContents(response.data.data || response.data || []);
       } catch (error) {
         console.error("Error fetching theory content:", error);
       } finally {

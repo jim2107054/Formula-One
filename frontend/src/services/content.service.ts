@@ -77,7 +77,17 @@ export const contentService = {
       }
       
       const data = await response.json();
-      return data.materials || [];
+      const materials = data.materials || [];
+      
+      // Validate and ensure required fields exist
+      return materials.filter((m: any) => 
+        m && 
+        typeof m.id === 'string' && 
+        typeof m.title === 'string' && 
+        typeof m.description === 'string' && 
+        typeof m.type === 'string' &&
+        typeof m.topic === 'string'
+      );
     } catch (error) {
       console.error("Get theory materials error:", error);
       throw error;
@@ -180,7 +190,17 @@ export const contentService = {
       }
       
       const data = await response.json();
-      return data.materials || [];
+      const materials = data.materials || [];
+      
+      // Validate and ensure required fields exist
+      return materials.filter((m: any) => 
+        m && 
+        typeof m.id === 'string' && 
+        typeof m.title === 'string' && 
+        typeof m.description === 'string' && 
+        typeof m.language === 'string' &&
+        typeof m.topic === 'string'
+      );
     } catch (error) {
       console.error("Get lab materials error:", error);
       throw error;
