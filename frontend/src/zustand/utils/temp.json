@@ -1,0 +1,201 @@
+{
+  "module": {
+    "title": "The Ultimate Full-Stack Web Development Bootcamp",
+    "description": "Zero to Hero: Master HTML, CSS, JavaScript, React, Node.js, and DevOps in one comprehensive curriculum.",
+    "sections": [
+      {
+        "title": "Section 1: The Frontend Foundation",
+        "lessons": [
+          {
+            "title": "Lesson 1.1: Advanced HTML5 & Semantics",
+            "items": [
+              {
+                "title": "Video: Why Semantic HTML Matters for SEO",
+                "type": "video",
+                "duration": "12:30"
+              },
+              {
+                "title": "Cheatsheet: New HTML5 Input Types",
+                "type": "pdf"
+              },
+              {
+                "title": "Challenge: Refactor a Div-Soup Layout",
+                "type": "coding-challenge"
+              }
+            ]
+          },
+          {
+            "title": "Lesson 1.2: CSS Mastery (Flexbox & Grid)",
+            "items": [
+              {
+                "title": "Interactive: Froggy Flexbox Game",
+                "type": "external-link"
+              },
+              {
+                "title": "Video: CSS Grid vs. Flexbox - When to use which?",
+                "type": "video",
+                "duration": "15:45"
+              },
+              {
+                "title": "Project: Build a Responsive Photo Gallery",
+                "type": "project"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Section 2: JavaScript Logic & Algorithms",
+        "lessons": [
+          {
+            "title": "Lesson 2.1: Modern ES6+ Syntax",
+            "items": [
+              {
+                "title": "Article: Arrow Functions and 'this' keyword",
+                "type": "reading"
+              },
+              {
+                "title": "Quiz: Destructuring & Spread Operator",
+                "type": "quiz"
+              },
+              {
+                "title": "Video: Async/Await vs. Promises",
+                "type": "video",
+                "duration": "20:10"
+              }
+            ]
+          },
+          {
+            "title": "Lesson 2.2: DOM Manipulation",
+            "items": [
+              {
+                "title": "Video: Event Bubbling and Capturing Explained",
+                "type": "video",
+                "duration": "10:05"
+              },
+              {
+                "title": "Exercise: Create a 'Dark Mode' Toggle",
+                "type": "practice"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Section 3: Frontend Frameworks (React.js)",
+        "lessons": [
+          {
+            "title": "Lesson 3.1: Component Architecture",
+            "items": [
+              {
+                "title": "Video: Thinking in React - State vs. Props",
+                "type": "video",
+                "duration": "18:20"
+              },
+              {
+                "title": "Diagram: React Component Lifecycle",
+                "type": "image"
+              }
+            ]
+          },
+          {
+            "title": "Lesson 3.2: Hooks & State Management",
+            "items": [
+              {
+                "title": "Guide: useState and useEffect Deep Dive",
+                "type": "reading"
+              },
+              {
+                "title": "Project: Build a To-Do App with LocalStorage",
+                "type": "project"
+              },
+              {
+                "title": "Video: Managing Global State with Context API",
+                "type": "video",
+                "duration": "25:00"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Section 4: Backend Engineering",
+        "lessons": [
+          {
+            "title": "Lesson 4.1: Node.js & Express Environment",
+            "items": [
+              {
+                "title": "Video: Understanding the Event Loop",
+                "type": "video",
+                "duration": "14:15"
+              },
+              {
+                "title": "Tutorial: Setting up an Express Server",
+                "type": "interactive-code"
+              },
+              {
+                "title": "Article: HTTP Methods (GET, POST, PUT, DELETE)",
+                "type": "reading"
+              }
+            ]
+          },
+          {
+            "title": "Lesson 4.2: REST API Development",
+            "items": [
+              {
+                "title": "Video: Building RESTful Endpoints",
+                "type": "video",
+                "duration": "30:00"
+              },
+              {
+                "title": "Tool: Testing APIs with Postman",
+                "type": "download"
+              },
+              {
+                "title": "Challenge: Build a 'User Authentication' API",
+                "type": "coding-challenge"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Section 5: Databases & Deployment",
+        "lessons": [
+          {
+            "title": "Lesson 5.1: NoSQL with MongoDB",
+            "items": [
+              {
+                "title": "Video: SQL vs NoSQL - The Differences",
+                "type": "video",
+                "duration": "08:50"
+              },
+              {
+                "title": "Exercise: Writing Mongoose Schemas",
+                "type": "practice"
+              }
+            ]
+          },
+          {
+            "title": "Lesson 5.2: CI/CD & Cloud Hosting",
+            "items": [
+              {
+                "title": "Guide: Deploying MERN App to Vercel & Render",
+                "type": "reading"
+              },
+              {
+                "title": "Video: Setting up GitHub Actions",
+                "type": "video",
+                "duration": "22:15"
+              },
+              {
+                "title": "Final Exam: Full Stack Theory",
+                "type": "quiz"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

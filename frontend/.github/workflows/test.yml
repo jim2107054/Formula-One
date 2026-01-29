@@ -1,0 +1,84 @@
+name: Test (CI/CD)
+
+on:
+  push:
+    branches: [ test ]
+
+env:
+  SERVER_NAME: "ifen-lms-frontend-v3-test"
+  ENTRY_SCRIPT_NAME: "start:test"
+  NEXT_PUBLIC_API_URL: "https://ifen-lms-test-v3.algosoftbd.com/api/v3"
+  ⁠NEXT_PUBLIC_TINYMCE_API_KEY: "v4by7obojjokr4wpcoz0p36vsrsgz24vphr04d028ibw6yja"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      object_key: ${{steps.S3.outputs.object_key}}
+    strategy:
+      matrix:
+        node-version: [20.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - run: npm install --force
+      - name: "Start Building"
+        run: NODE_OPTIONS=--openssl-legacy-provider npm run build
+
+      - name: Zip everything including symbolic links
+        run: mkdir archive && zip -q -r --symlinks archive/release.zip ./  && echo "success" || echo "failure"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: archive
+          path: ./archive
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted, mubin_server]
+    steps:
+      - name: Delete current folder contents (including hidden folders)
+        run: rm -rf ..?* .[!.]* *
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: archive
+
+      - run: unzip -q -o release.zip  && echo "success" || echo "failure"
+      - name: Set HOME manually
+        run: echo "HOME=/root" >> $GITHUB_ENV
+        
+      - name: Check if PM2 server exists
+        id: check-pm2-server
+        run: |
+          if pm2 list | grep -q "$SERVER_NAME"; then
+            echo "PM2 server exists"
+            echo "::set-output name=server_exists::true"
+          else
+            echo "PM2 server does not exist"
+            echo "::set-output name=server_exists::false"
+          fi
+          
+      - name: Restart or start PM2 server
+        run: |
+          if [ "${{ steps.check-pm2-server.outputs.server_exists }}" == 'true' ]; then
+            pm2 restart $SERVER_NAME
+          else
+            pm2 start --name "$SERVER_NAME" npm -- run "$ENTRY_SCRIPT_NAME" && pm2 save --force
+          fi
+
+  cleanup:
+    needs: [build, deploy]
+    if: success() || failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete artifacts
+        uses: geekyeggo/delete-artifact@v4
+        with:
+          name: archive
