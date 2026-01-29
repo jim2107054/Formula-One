@@ -1,0 +1,95 @@
+/* Title */
+.title {
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: -0.48px;
+  line-height: 36px;
+  margin: 0;
+  max-width: 100%;
+  transition: color 0.5s ease;
+}
+
+/* Date Wrapper */
+.dateWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1.5rem;
+}
+
+.calendarIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.dateText {
+  color: #777d7d;
+  font-size: 16px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* Countdown Section */
+.countdownCircle {
+  position: relative;
+  width: 10rem;
+  height: 10rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Progress Ring */
+.progressRing {
+  position: absolute;
+  width: 10rem;
+  height: 10rem;
+  transform: rotate(-90deg);
+}
+
+.progressRing circle {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.progressBackground {
+  stroke: #f0f0f0;
+}
+
+.progressForeground {
+  stroke: var(--Accent-default);
+  stroke-dasharray: 251.2;
+  stroke-dashoffset: 50;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.countdownText {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.daysNumber {
+  font-size: 32px;
+  font-weight: 700;
+  color: #000000;
+  line-height: 1;
+}
+
+.days {
+  font-size: 14px;
+  font-weight: 400;
+  color: #000000;
+  line-height: 1;
+}
+
+.remaining {
+  font-size: 10px;
+  font-weight: 400;
+  color: #666666;
+  line-height: 1;
+}
