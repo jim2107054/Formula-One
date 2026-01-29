@@ -17,17 +17,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { BiCategory } from "react-icons/bi";
 import {
   FaBook,
   FaChevronLeft,
   FaChevronRight,
-  FaFolder,
-  FaGraduationCap,
-  FaList,
-  FaPlay,
-  FaTags,
   FaUsers,
+  FaChartBar,
+  FaSearch,
+  FaRobot,
+  FaComments,
+  FaFlask,
+  FaFileAlt,
 } from "react-icons/fa";
 import { ImExit } from "react-icons/im";
 
@@ -39,35 +39,14 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: "/admin/user", label: "User", pattern: "user", icon: FaUsers },
-  { href: "/admin/module", label: "Module", pattern: "/module", icon: FaBook },
-  {
-    href: "/admin/section",
-    label: "Section",
-    pattern: "section",
-    icon: FaFolder,
-  },
-  { href: "/admin/lesson", label: "Lesson", pattern: "lesson", icon: FaPlay },
-  { href: "/admin/item", label: "Item", pattern: "item", icon: FaList },
-  { href: "/admin/tag", label: "Tag", pattern: "tag", icon: FaTags },
-  {
-    href: "/admin/enrollment",
-    label: "Enrollment",
-    pattern: "enrollment",
-    icon: FaGraduationCap,
-  },
-  {
-    href: "/admin/category",
-    label: "Category",
-    pattern: "category",
-    icon: BiCategory,
-  },
-  {
-    href: "/admin/cms",
-    label: "CMS",
-    pattern: "cms",
-    icon: FaBook,
-  },
+  { href: "/admin/dashboard", label: "Dashboard", pattern: "dashboard", icon: FaChartBar },
+  { href: "/admin/users", label: "Users", pattern: "users", icon: FaUsers },
+  { href: "/admin/content", label: "Content", pattern: "content", icon: FaBook },
+  { href: "/admin/theory", label: "Theory", pattern: "theory", icon: FaFileAlt },
+  { href: "/admin/lab", label: "Lab", pattern: "lab", icon: FaFlask },
+  { href: "/admin/search", label: "Search", pattern: "search", icon: FaSearch },
+  { href: "/admin/ai-generate", label: "AI Generate", pattern: "ai-generate", icon: FaRobot },
+  { href: "/admin/chat", label: "Chat", pattern: "chat", icon: FaComments },
 ];
 
 export default function SideNav() {

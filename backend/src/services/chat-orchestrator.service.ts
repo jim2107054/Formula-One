@@ -1,49 +1,15 @@
-/**
- * Chat Orchestrator Service
- * Orchestrates chat interactions and coordinates with AI backend
- */
+import { ChatSessionModel, IChatSession } from "../models/chat-session.model";
 import { v4 as uuidv4 } from "uuid";
-import { readJson, writeJson } from "../utils/fileStore";
-
-export interface ChatMessage {
-  id: string;
-  sessionId: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-  metadata?: {
-    sources?: string[];
-    confidence?: number;
-  };
-}
-
-export interface ChatSession {
-  id: string;
-  userId: string;
-  title: string;
-  messages: ChatMessage[];
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface SendMessageResult {
-  message: ChatMessage;
-  session: ChatSession;
+  message: any;
+  session: IChatSession;
 }
 
-const SESSIONS_FILE = "sessions.json";
 const AI_BACKEND_URL =
   process.env.AI_BACKEND_URL || "http://localhost:8001/api/v1";
 
 class ChatOrchestratorService {
-  private async getSessions(): Promise<ChatSession[]> {
-    return readJson<ChatSession>(SESSIONS_FILE);
-  }
-
-  private async saveSessions(sessions: ChatSession[]): Promise<void> {
-    await writeJson(SESSIONS_FILE, sessions);
-  }
-
   /**
    * Send a message and get AI response
    */
@@ -52,26 +18,22 @@ class ChatOrchestratorService {
     userId: string,
     content: string,
   ): Promise<SendMessageResult> {
-    const sessions = await this.getSessions();
-    const sessionIndex = sessions.findIndex((s) => s.id === sessionId); // && s.userId === userId?
+    let session = await ChatSessionModel.findOne({ _id: sessionId });
 
-    if (sessionIndex === -1) {
+    if (!session) {
       throw new Error("Session not found");
     }
 
-    const session = sessions[sessionIndex];
-
     // 1. Add User Message
-    const userMessage: ChatMessage = {
+    const userMessage = {
       id: uuidv4(),
-      sessionId,
-      role: "user",
+      role: "user" as const,
       content,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
     };
     session.messages.push(userMessage);
 
-    // 2. Call AI Backend
+    // 2. Call AI Backend (Real call to Python service)
     let aiResponseContent = "I'm sorry, I couldn't connect to the AI service.";
     try {
       const response = await fetch(`${AI_BACKEND_URL}/generation/generate`, {
@@ -79,8 +41,8 @@ class ChatOrchestratorService {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: content,
-          generation_type: "explanation", // Using explanation for chat
-          context: session.messages.map((m) => m.content).slice(-5), // Send last 5 messages as context? API mock ignore context for now
+          generation_type: "explanation",
+          context: session.messages.map((m) => m.content).slice(-5),
         }),
       });
 
@@ -93,24 +55,21 @@ class ChatOrchestratorService {
     }
 
     // 3. Add AI Message
-    const aiMessage: ChatMessage = {
+    const aiMessage = {
       id: uuidv4(),
-      sessionId,
-      role: "assistant",
+      role: "assistant" as const,
       content: aiResponseContent,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
     };
     session.messages.push(aiMessage);
-    session.updatedAt = new Date().toISOString();
 
-    // Update session title if it's the first exchange and title is default
+    // Update title logic
     if (session.messages.length <= 2) {
       session.title =
         content.substring(0, 30) + (content.length > 30 ? "..." : "");
     }
 
-    sessions[sessionIndex] = session;
-    await this.saveSessions(sessions);
+    await session.save();
 
     return {
       message: aiMessage,
@@ -121,16 +80,8 @@ class ChatOrchestratorService {
   /**
    * Get chat history for a user
    */
-  async getChatHistory(userId: string): Promise<ChatSession[]> {
-    const sessions = await this.getSessions();
-    // Filter by userId (Assuming userId might be simulated/shared for now or strict)
-    // For now return all for simplicity or filter
-    return sessions
-      .filter((s) => s.userId === userId)
-      .sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-      );
+  async getChatHistory(userId: string): Promise<IChatSession[]> {
+    return ChatSessionModel.find({ userId }).sort({ updatedAt: -1 });
   }
 
   /**
@@ -139,41 +90,36 @@ class ChatOrchestratorService {
   async getSession(
     sessionId: string,
     userId: string,
-  ): Promise<ChatSession | null> {
-    const sessions = await this.getSessions();
-    return sessions.find((s) => s.id === sessionId) || null;
+  ): Promise<IChatSession | null> {
+    try {
+      return await ChatSessionModel.findOne({ _id: sessionId });
+    } catch {
+      return null;
+    }
   }
 
   /**
    * Create new chat session
    */
-  async createSession(userId: string, title?: string): Promise<ChatSession> {
-    const sessions = await this.getSessions();
-    const newSession: ChatSession = {
-      id: uuidv4(),
+  async createSession(userId: string, title?: string): Promise<IChatSession> {
+    const session = new ChatSessionModel({
       userId,
       title: title || "New Chat",
       messages: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    sessions.push(newSession);
-    await this.saveSessions(sessions);
-    return newSession;
+    });
+    return session.save();
   }
 
   /**
    * Delete chat session
    */
   async deleteSession(sessionId: string, userId: string): Promise<boolean> {
-    const sessions = await this.getSessions();
-    const initialLength = sessions.length;
-    const filtered = sessions.filter((s) => s.id !== sessionId);
-
-    if (filtered.length === initialLength) return false;
-
-    await this.saveSessions(filtered);
-    return true;
+    try {
+      const result = await ChatSessionModel.deleteOne({ _id: sessionId });
+      return result.deletedCount === 1;
+    } catch {
+      return false;
+    }
   }
 }
 

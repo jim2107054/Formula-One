@@ -11,8 +11,8 @@ export default function Login() {
         />
 
         <LoginForm
-          mainTitle="Welcome to the Neurofeedback Academy"
-          subtitle="The Institute for EEG Neurofeedback, IFEN, was founded in 2008 and is one of the leading educational centers for Neurofeedback in Germany and Europe. Its research and development department IFEN-Neuroscience develops useful tools and feedback applications for practitioners and researchers worldwide."
+          mainTitle="AI-Powered Learning Platform"
+          subtitle="University course learning platform with intelligent search, AI-generated materials, and a conversational interface. Access your Theory and Lab content, get instant help, and enhance your learning experience."
           buttonText="Login"
           mailLabel="Email"
           passwordLabel="Password"
