@@ -1,266 +1,330 @@
 "use client";
 
-import { Box, Button, Card, Flex, Heading, Select, Text, TextField } from "@radix-ui/themes";
-import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { FaSearch, FaFileAlt, FaCode, FaFilePdf, FaSlideshare } from "react-icons/fa";
-import api from "@/util/api";
-import toast from "react-hot-toast";
-import "@radix-ui/themes/styles.css";
-import { Theme } from "@radix-ui/themes";
+import { useState } from "react";
+import {
+  FaSearch,
+  FaBook,
+  FaFlask,
+  FaFileAlt,
+  FaCode,
+  FaLightbulb,
+  FaClock,
+  FaArrowRight,
+  FaStar,
+  FaHistory,
+} from "react-icons/fa";
+import { BiSolidMagicWand } from "react-icons/bi";
+import aiService from "@/services/ai.service";
 
 interface SearchResult {
-  _id: string;
+  id: string;
   title: string;
-  description: string;
-  content: string;
-  category: string;
-  type: string;
-  topic: string;
-  tags: string[];
+  type: "theory" | "lab" | "notes" | "code";
   relevanceScore: number;
+  excerpt: string;
+  source: string;
+  matchedKeywords: string[];
+  week?: number;
 }
 
-const TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  slide: FaSlideshare,
-  pdf: FaFilePdf,
+const dummySearchResults: SearchResult[] = [
+  {
+    id: "1",
+    title: "Introduction to Neural Networks",
+    type: "theory",
+    relevanceScore: 0.95,
+    excerpt: "Neural networks are computing systems inspired by biological neural networks. They consist of interconnected nodes or 'neurons' that process information using connectionist approaches...",
+    source: "Week 2 - Deep Learning Fundamentals.pdf",
+    matchedKeywords: ["neural networks", "neurons", "deep learning"],
+    week: 2,
+  },
+  {
+    id: "2",
+    title: "Building a Neural Network in Python",
+    type: "lab",
+    relevanceScore: 0.89,
+    excerpt: "In this lab, we'll implement a basic neural network from scratch using NumPy. We'll cover forward propagation, activation functions, and backpropagation...",
+    source: "Lab 3 - Neural Network Implementation",
+    matchedKeywords: ["neural network", "python", "implementation"],
+    week: 3,
+  },
+  {
+    id: "3",
+    title: "Activation Functions Explained",
+    type: "notes",
+    relevanceScore: 0.82,
+    excerpt: "Activation functions introduce non-linearity into neural networks. Common types include ReLU, Sigmoid, and Tanh. Each has specific use cases and trade-offs...",
+    source: "Supplementary Notes - Chapter 4",
+    matchedKeywords: ["activation functions", "ReLU", "neural networks"],
+    week: 2,
+  },
+  {
+    id: "4",
+    title: "PyTorch Neural Network Example",
+    type: "code",
+    relevanceScore: 0.78,
+    excerpt: "import torch\nimport torch.nn as nn\n\nclass SimpleNN(nn.Module):\n    def __init__(self):\n        super().__init__()\n        self.layers = nn.Sequential(...)",
+    source: "Code Examples - PyTorch Basics",
+    matchedKeywords: ["PyTorch", "neural network", "code"],
+    week: 4,
+  },
+];
+
+const recentSearches = [
+  "machine learning algorithms",
+  "python data structures",
+  "convolutional neural networks",
+  "REST API design",
+];
+
+const suggestedTopics = [
+  "Introduction to AI",
+  "Python Fundamentals",
+  "Data Preprocessing",
+  "Model Evaluation",
+  "Deep Learning Basics",
+];
+
+const typeIcons = {
+  theory: FaBook,
+  lab: FaFlask,
+  notes: FaFileAlt,
   code: FaCode,
-  note: FaFileAlt,
-  reference: FaFileAlt,
 };
 
-function SearchContent() {
-  const searchParams = useSearchParams();
-  const initialQuery = searchParams?.get("q") || "";
-  
-  const [query, setQuery] = useState(initialQuery);
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+const typeColors = {
+  theory: "bg-blue-100 text-blue-600",
+  lab: "bg-green-100 text-green-600",
+  notes: "bg-purple-100 text-purple-600",
+  code: "bg-orange-100 text-orange-600",
+};
+
+export default function SearchPage() {
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [searching, setSearching] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [selectedContent, setSelectedContent] = useState<SearchResult | null>(null);
 
-  const handleSearch = async () => {
-    if (!query.trim()) {
-      toast.error("Please enter a search query");
-      return;
-    }
+  const handleSearch = async (searchQuery: string) => {
+    if (!searchQuery.trim()) return;
 
-    setSearching(true);
+    setQuery(searchQuery);
+    setIsSearching(true);
     setHasSearched(true);
 
     try {
-      const params = new URLSearchParams({ q: query });
-      if (categoryFilter !== "all") {
-        params.append("category", categoryFilter);
-      }
-
-      const response = await api.get(`/api/search?${params.toString()}`);
-
-      if (response.data.success) {
-        setResults(response.data.data || []);
-        if (response.data.data.length === 0) {
-          toast("No results found", { icon: "🔍" });
-        }
-      }
+      // Call AI backend search API
+      const searchResults = await aiService.search(searchQuery);
+      setResults(searchResults);
     } catch (error) {
       console.error("Search error:", error);
-      toast.error("Search failed");
+      // Fallback to dummy results if API fails
+      const filtered = dummySearchResults.filter(
+        (result) =>
+          result.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          result.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          result.matchedKeywords.some((kw) =>
+            kw.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+      );
+      setResults(filtered.length > 0 ? filtered : dummySearchResults);
     } finally {
-      setSearching(false);
+      setIsSearching(false);
     }
   };
 
-  // Auto-search if query parameter exists
-  useState(() => {
-    if (initialQuery) {
-      handleSearch();
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch(query);
     }
-  });
+  };
 
   return (
-    <Box className="p-6">
-      <Heading size="7" className="mb-2">Search Course Materials</Heading>
-      <Text className="text-gray-600 mb-6">
-        Find relevant content using natural language search across all course materials.
-      </Text>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl mb-4">
+          <BiSolidMagicWand className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-3xl font-bold mb-2">Intelligent Search</h1>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          Use AI-powered semantic search to find relevant content across all course materials.
+          Ask questions in natural language!
+        </p>
+      </div>
 
-      {/* Search Form */}
-      <Card className="p-6 mb-6">
-        <Flex gap="4" align="end" wrap="wrap">
-          <Box className="flex-1 min-w-[300px]">
-            <Text className="text-sm mb-2 block font-medium">Search Query</Text>
-            <TextField.Root
-              size="3"
-              placeholder="What would you like to learn about? E.g., 'binary search', 'machine learning basics'"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-            />
-          </Box>
-          <Box>
-            <Text className="text-sm mb-2 block font-medium">Category</Text>
-            <Select.Root value={categoryFilter} onValueChange={setCategoryFilter}>
-              <Select.Trigger />
-              <Select.Content>
-                <Select.Item value="all">All Materials</Select.Item>
-                <Select.Item value="theory">Theory Only</Select.Item>
-                <Select.Item value="lab">Lab Only</Select.Item>
-              </Select.Content>
-            </Select.Root>
-          </Box>
-          <Button 
-            size="3" 
-            onClick={handleSearch} 
-            disabled={searching}
-            className="!cursor-pointer"
-          >
-            <FaSearch /> {searching ? "Searching..." : "Search"}
-          </Button>
-        </Flex>
-      </Card>
-
-      {/* Results */}
-      <Flex gap="6" direction={{ initial: "column", lg: "row" }}>
-        {/* Results List */}
-        <Box className="flex-1">
-          <Heading size="4" className="mb-4">
-            {hasSearched ? `Results (${results.length})` : "Search Results"}
-          </Heading>
-
-          {!hasSearched ? (
-            <Card className="p-8 text-center">
-              <FaSearch className="text-4xl text-gray-300 mx-auto mb-4" />
-              <Text className="text-gray-500">
-                Enter a search query to find relevant course materials
-              </Text>
-            </Card>
-          ) : results.length === 0 ? (
-            <Card className="p-8 text-center">
-              <Text className="text-gray-500">
-                No results found for your query. Try different keywords.
-              </Text>
-            </Card>
-          ) : (
-            <Flex direction="column" gap="3">
-              {results.map((result) => {
-                const TypeIcon = TYPE_ICONS[result.type] || FaFileAlt;
-                return (
-                  <Card 
-                    key={result._id} 
-                    className={`p-4 cursor-pointer transition-all hover:shadow-md ${
-                      selectedContent?._id === result._id ? "ring-2 ring-[var(--Accent-default)]" : ""
-                    }`}
-                    onClick={() => setSelectedContent(result)}
-                  >
-                    <Flex justify="between" align="start">
-                      <Flex gap="3" align="start" className="flex-1">
-                        <Box className={`p-2 rounded ${
-                          result.category === "theory" ? "bg-blue-50" : "bg-green-50"
-                        }`}>
-                          <TypeIcon className={
-                            result.category === "theory" ? "text-blue-600" : "text-green-600"
-                          } />
-                        </Box>
-                        <Box className="flex-1">
-                          <Heading size="3">{result.title}</Heading>
-                          <Text className="text-gray-600 text-sm line-clamp-2">
-                            {result.description || result.content.substring(0, 150)}...
-                          </Text>
-                          <Flex gap="2" className="mt-2" wrap="wrap">
-                            <span className={`px-2 py-0.5 rounded text-xs ${
-                              result.category === "theory" 
-                                ? "bg-blue-100 text-blue-700" 
-                                : "bg-green-100 text-green-700"
-                            }`}>
-                              {result.category}
-                            </span>
-                            <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
-                              {result.type}
-                            </span>
-                            {result.topic && (
-                              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
-                                {result.topic}
-                              </span>
-                            )}
-                          </Flex>
-                        </Box>
-                      </Flex>
-                      <Box className="text-right ml-4">
-                        <Text className="text-xs text-gray-500">Relevance</Text>
-                        <Text className="font-bold text-[var(--Accent-default)]">
-                          {Math.round(result.relevanceScore * 10)}%
-                        </Text>
-                      </Box>
-                    </Flex>
-                  </Card>
-                );
-              })}
-            </Flex>
-          )}
-        </Box>
-
-        {/* Content Preview */}
-        {selectedContent && (
-          <Card className="p-6 flex-1 max-h-[600px] overflow-y-auto">
-            <Heading size="4" className="mb-4">Content Preview</Heading>
-            <Box>
-              <Heading size="5" className="mb-2">{selectedContent.title}</Heading>
-              <Flex gap="2" className="mb-4" wrap="wrap">
-                <span className={`px-2 py-1 rounded text-xs ${
-                  selectedContent.category === "theory" 
-                    ? "bg-blue-100 text-blue-700" 
-                    : "bg-green-100 text-green-700"
-                }`}>
-                  {selectedContent.category}
-                </span>
-                <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-                  {selectedContent.type}
-                </span>
-                {selectedContent.tags.map((tag, i) => (
-                  <span key={i} className="px-2 py-1 bg-gray-50 rounded text-xs">
-                    {tag}
-                  </span>
-                ))}
-              </Flex>
-
-              {selectedContent.description && (
-                <Box className="mb-4">
-                  <Text className="font-medium text-sm text-gray-500">Description</Text>
-                  <Text>{selectedContent.description}</Text>
-                </Box>
+      {/* Search Box */}
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-lg p-2 border border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 relative">
+              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask a question or search for topics..."
+                className="w-full pl-12 pr-4 py-4 text-lg border-0 focus:outline-none focus:ring-0"
+              />
+            </div>
+            <button
+              onClick={() => handleSearch(query)}
+              disabled={isSearching || !query.trim()}
+              className="px-6 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-medium hover:from-purple-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSearching ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <FaSearch />
+                  Search
+                </>
               )}
+            </button>
+          </div>
+        </div>
+      </div>
 
-              <Box>
-                <Text className="font-medium text-sm text-gray-500 mb-2">Content</Text>
-                <Box className={`rounded-lg p-4 ${
-                  selectedContent.category === "lab" 
-                    ? "bg-gray-900" 
-                    : "bg-gray-50"
-                }`}>
-                  <pre className={`whitespace-pre-wrap text-sm font-mono ${
-                    selectedContent.category === "lab" 
-                      ? "text-green-400" 
-                      : "text-gray-800"
-                  }`}>
-                    {selectedContent.content}
-                  </pre>
-                </Box>
-              </Box>
-            </Box>
-          </Card>
-        )}
-      </Flex>
-    </Box>
-  );
-}
+      {/* Before Search - Show Suggestions */}
+      {!hasSearched && (
+        <div className="max-w-3xl mx-auto space-y-8 mt-8">
+          {/* Recent Searches */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
+              <FaHistory className="w-4 h-4" />
+              Recent Searches
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {recentSearches.map((search, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSearch(search)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition-colors"
+                >
+                  {search}
+                </button>
+              ))}
+            </div>
+          </div>
 
-export default function StudentSearchPage() {
-  return (
-    <Theme>
-      <Suspense fallback={<div className="p-6">Loading...</div>}>
-        <SearchContent />
-      </Suspense>
-    </Theme>
+          {/* Suggested Topics */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
+              <FaLightbulb className="w-4 h-4" />
+              Suggested Topics
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {suggestedTopics.map((topic, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSearch(topic)}
+                  className="p-4 bg-white border border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-md transition-all text-left group"
+                >
+                  <span className="font-medium group-hover:text-purple-600 transition-colors">
+                    {topic}
+                  </span>
+                  <FaArrowRight className="w-4 h-4 text-gray-400 group-hover:text-purple-500 mt-2 group-hover:translate-x-1 transition-all" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tips */}
+          <div className="bg-purple-50 rounded-xl p-6">
+            <h3 className="font-medium mb-3">💡 Search Tips</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>• Try asking questions like "What is backpropagation?"</li>
+              <li>• Search for code examples: "Python sorting algorithms"</li>
+              <li>• Find related concepts: "difference between CNN and RNN"</li>
+              <li>• Look for specific topics: "Week 3 neural networks"</li>
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Search Results */}
+      {hasSearched && !isSearching && (
+        <div className="max-w-4xl mx-auto space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-gray-600">
+              Found <span className="font-medium text-gray-900">{results.length}</span> results
+              for "<span className="font-medium text-purple-600">{query}</span>"
+            </p>
+          </div>
+
+          {results.map((result) => {
+            const TypeIcon = typeIcons[result.type];
+            return (
+              <div
+                key={result.id}
+                className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all"
+              >
+                <div className="flex items-start gap-4">
+                  <div
+                    className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${
+                      typeColors[result.type]
+                    }`}
+                  >
+                    <TypeIcon className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="font-semibold text-lg hover:text-purple-600 cursor-pointer transition-colors">
+                          {result.title}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                          <span className="capitalize">{result.type}</span>
+                          {result.week && (
+                            <>
+                              <span>•</span>
+                              <span>Week {result.week}</span>
+                            </>
+                          )}
+                          <span>•</span>
+                          <span>{result.source}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <FaStar className="w-4 h-4 text-yellow-400" />
+                        <span className="text-sm font-medium">
+                          {Math.round(result.relevanceScore * 100)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-600 mt-3 line-clamp-2">{result.excerpt}</p>
+
+                    <div className="flex items-center gap-2 mt-3">
+                      <span className="text-xs text-gray-500">Matched:</span>
+                      {result.matchedKeywords.map((keyword, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {results.length === 0 && (
+            <div className="text-center py-12">
+              <FaSearch className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-600 mb-2">No results found</h3>
+              <p className="text-gray-500">Try different keywords or check your spelling</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

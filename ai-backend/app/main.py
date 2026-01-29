@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from app.config import get_settings
-from app.api import health, rag, generation, validation
+from app.api import health, rag, generation, validation, search, generate, validate, chat
 
 # Configure logging
 logging.basicConfig(
@@ -66,6 +66,10 @@ def create_app() -> FastAPI:
     app.include_router(rag.router, prefix=settings.api_prefix)
     app.include_router(generation.router, prefix=settings.api_prefix)
     app.include_router(validation.router, prefix=settings.api_prefix)
+    app.include_router(search.router, prefix=settings.api_prefix)
+    app.include_router(generate.router, prefix=settings.api_prefix)
+    app.include_router(validate.router, prefix=settings.api_prefix)
+    app.include_router(chat.router, prefix=settings.api_prefix)
     
     # Root endpoint
     @app.get("/")

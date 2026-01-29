@@ -1,206 +1,365 @@
 "use client";
 
-import { Box, Card, Flex, Grid, Heading, Text, TextField, Select } from "@radix-ui/themes";
-import { useEffect, useState } from "react";
-import { FaCode, FaPython, FaJava, FaJs, FaFlask } from "react-icons/fa";
-import api from "@/util/api";
-import "@radix-ui/themes/styles.css";
-import { Theme } from "@radix-ui/themes";
+import { useState } from "react";
+import {
+  FaFlask,
+  FaPython,
+  FaJava,
+  FaJs,
+  FaDownload,
+  FaSearch,
+  FaFilter,
+  FaCode,
+  FaPlay,
+  FaCopy,
+  FaCheckCircle,
+  FaCalendar,
+  FaFolder,
+  FaEye,
+} from "react-icons/fa";
+import { SiTypescript, SiCplusplus } from "react-icons/si";
 
-interface Content {
-  _id: string;
+interface LabMaterial {
+  id: string;
   title: string;
   description: string;
-  content: string;
-  type: string;
+  language: "python" | "java" | "javascript" | "typescript" | "cpp";
   topic: string;
-  language: string;
+  week: number;
   tags: string[];
-  createdAt: string;
+  codePreview: string;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  exercises: number;
+  uploadedAt: string;
 }
 
-const LANG_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+const dummyLabMaterials: LabMaterial[] = [
+  {
+    id: "1",
+    title: "Python Data Structures",
+    description: "Implementation of common data structures: linked lists, stacks, queues, and trees in Python.",
+    language: "python",
+    topic: "Data Structures",
+    week: 1,
+    tags: ["Python", "Data Structures", "Algorithms"],
+    codePreview: `class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nclass LinkedList:\n    def __init__(self):\n        self.head = None`,
+    difficulty: "beginner",
+    exercises: 5,
+    uploadedAt: "2024-01-15",
+  },
+  {
+    id: "2",
+    title: "Neural Network from Scratch",
+    description: "Build a simple neural network using only NumPy - forward and backward propagation.",
+    language: "python",
+    topic: "Deep Learning",
+    week: 3,
+    tags: ["Neural Networks", "NumPy", "Backpropagation"],
+    codePreview: `import numpy as np\n\ndef sigmoid(x):\n    return 1 / (1 + np.exp(-x))\n\ndef forward(X, W1, W2):\n    Z1 = np.dot(X, W1)\n    A1 = sigmoid(Z1)`,
+    difficulty: "intermediate",
+    exercises: 3,
+    uploadedAt: "2024-01-29",
+  },
+  {
+    id: "3",
+    title: "REST API with Express.js",
+    description: "Complete REST API implementation with CRUD operations, validation, and error handling.",
+    language: "javascript",
+    topic: "Web Development",
+    week: 4,
+    tags: ["Node.js", "Express", "REST API"],
+    codePreview: `const express = require('express');\nconst app = express();\n\napp.get('/api/users', async (req, res) => {\n    const users = await User.find();\n    res.json(users);\n});`,
+    difficulty: "intermediate",
+    exercises: 4,
+    uploadedAt: "2024-02-05",
+  },
+  {
+    id: "4",
+    title: "TypeScript Design Patterns",
+    description: "Implementation of common design patterns: Singleton, Factory, Observer, and Strategy.",
+    language: "typescript",
+    topic: "Software Engineering",
+    week: 5,
+    tags: ["TypeScript", "Design Patterns", "OOP"],
+    codePreview: `interface Observer {\n    update(data: any): void;\n}\n\nclass Subject {\n    private observers: Observer[] = [];\n    \n    subscribe(observer: Observer) {\n        this.observers.push(observer);\n    }`,
+    difficulty: "advanced",
+    exercises: 6,
+    uploadedAt: "2024-02-12",
+  },
+  {
+    id: "5",
+    title: "Machine Learning Algorithms",
+    description: "Implementations of Linear Regression, Logistic Regression, and K-Nearest Neighbors.",
+    language: "python",
+    topic: "Machine Learning",
+    week: 2,
+    tags: ["ML", "Scikit-learn", "Algorithms"],
+    codePreview: `from sklearn.linear_model import LinearRegression\nfrom sklearn.model_selection import train_test_split\n\nX_train, X_test, y_train, y_test = train_test_split(X, y)\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)`,
+    difficulty: "beginner",
+    exercises: 4,
+    uploadedAt: "2024-01-22",
+  },
+  {
+    id: "6",
+    title: "Concurrent Programming in Java",
+    description: "Multi-threading, synchronization, and parallel processing with Java's concurrency API.",
+    language: "java",
+    topic: "Systems Programming",
+    week: 6,
+    tags: ["Java", "Concurrency", "Threads"],
+    codePreview: `public class Worker implements Runnable {\n    @Override\n    public void run() {\n        System.out.println("Running");\n    }\n}\n\nExecutorService executor = Executors.newFixedThreadPool(4);`,
+    difficulty: "advanced",
+    exercises: 5,
+    uploadedAt: "2024-02-19",
+  },
+];
+
+const languageIcons = {
   python: FaPython,
   java: FaJava,
   javascript: FaJs,
+  typescript: SiTypescript,
+  cpp: SiCplusplus,
 };
 
-const LANG_COLORS: Record<string, { bg: string; text: string }> = {
-  python: { bg: "bg-yellow-50", text: "text-yellow-600" },
-  java: { bg: "bg-red-50", text: "text-red-600" },
-  javascript: { bg: "bg-yellow-50", text: "text-yellow-600" },
-  cpp: { bg: "bg-blue-50", text: "text-blue-600" },
-  c: { bg: "bg-gray-50", text: "text-gray-600" },
+const languageColors = {
+  python: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  java: "bg-red-100 text-red-700 border-red-200",
+  javascript: "bg-amber-100 text-amber-700 border-amber-200",
+  typescript: "bg-blue-100 text-blue-700 border-blue-200",
+  cpp: "bg-purple-100 text-purple-700 border-purple-200",
 };
 
-export default function StudentLabPage() {
-  const [contents, setContents] = useState<Content[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [languageFilter, setLanguageFilter] = useState("all");
-  const [selectedContent, setSelectedContent] = useState<Content | null>(null);
-  const [languages, setLanguages] = useState<string[]>([]);
+const difficultyColors = {
+  beginner: "bg-green-100 text-green-700",
+  intermediate: "bg-yellow-100 text-yellow-700",
+  advanced: "bg-red-100 text-red-700",
+};
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const response = await api.get("/api/content?category=lab&limit=100");
-        const data = response.data.data || [];
-        setContents(data);
-        
-        // Extract unique languages
-        const uniqueLangs = [...new Set(data.map((c: Content) => c.language).filter(Boolean))] as string[];
-        setLanguages(uniqueLangs);
-      } catch (error) {
-        console.error("Error fetching lab content:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchContent();
-  }, []);
+export default function LabMaterialsPage() {
+  const [materials] = useState<LabMaterial[]>(dummyLabMaterials);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterLanguage, setFilterLanguage] = useState<string>("all");
+  const [filterDifficulty, setFilterDifficulty] = useState<string>("all");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const filteredContents = contents.filter((content) => {
-    const matchesSearch = !search || 
-      content.title.toLowerCase().includes(search.toLowerCase()) ||
-      content.description?.toLowerCase().includes(search.toLowerCase()) ||
-      content.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()));
-    const matchesLang = languageFilter === "all" || content.language === languageFilter;
-    return matchesSearch && matchesLang;
+  const topics = [...new Set(dummyLabMaterials.map((m) => m.topic))];
+
+  const filteredMaterials = materials.filter((material) => {
+    const matchesSearch =
+      material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      material.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      material.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesLanguage = filterLanguage === "all" || material.language === filterLanguage;
+    const matchesDifficulty = filterDifficulty === "all" || material.difficulty === filterDifficulty;
+    return matchesSearch && matchesLanguage && matchesDifficulty;
   });
 
-  // Group by language
-  const groupedByLanguage = filteredContents.reduce((acc, content) => {
-    const lang = content.language || "other";
-    if (!acc[lang]) acc[lang] = [];
-    acc[lang].push(content);
-    return acc;
-  }, {} as Record<string, Content[]>);
+  const handleCopyCode = (id: string, code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   return (
-    <Theme>
-      <Box className="p-6">
-        <Heading size="7" className="mb-2">Lab Materials</Heading>
-        <Text className="text-gray-600 mb-6">
-          Browse code examples, programming exercises, and lab materials.
-        </Text>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-3">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <FaFlask className="text-green-600" />
+            </div>
+            Lab Materials
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Code files, exercises, and programming resources for hands-on learning
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
+            {filteredMaterials.length} Lab Files
+          </span>
+        </div>
+      </div>
 
-        {/* Filters */}
-        <Card className="p-4 mb-6">
-          <Flex gap="4" align="end" wrap="wrap">
-            <Box className="flex-1 min-w-[200px]">
-              <Text className="text-sm mb-2 block">Search</Text>
-              <TextField.Root
-                placeholder="Search lab materials..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </Box>
-            <Box>
-              <Text className="text-sm mb-2 block">Language</Text>
-              <Select.Root value={languageFilter} onValueChange={setLanguageFilter}>
-                <Select.Trigger />
-                <Select.Content>
-                  <Select.Item value="all">All Languages</Select.Item>
-                  {languages.map((lang) => (
-                    <Select.Item key={lang} value={lang} className="capitalize">{lang}</Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
-            </Box>
-          </Flex>
-        </Card>
+      {/* Search and Filters */}
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search lab materials by title, description, or tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--Primary)] focus:border-transparent"
+            />
+          </div>
 
-        <Flex gap="6" direction={{ initial: "column", lg: "row" }}>
-          {/* Content List */}
-          <Box className="flex-1">
-            {loading ? (
-              <Text>Loading...</Text>
-            ) : filteredContents.length === 0 ? (
-              <Card className="p-8 text-center">
-                <FaFlask className="text-4xl text-gray-300 mx-auto mb-4" />
-                <Text className="text-gray-500">No lab content found.</Text>
-              </Card>
-            ) : (
-              <Flex direction="column" gap="6">
-                {Object.entries(groupedByLanguage).map(([language, items]) => {
-                  const LangIcon = LANG_ICONS[language] || FaCode;
-                  const colors = LANG_COLORS[language] || { bg: "bg-green-50", text: "text-green-600" };
-                  return (
-                    <Box key={language}>
-                      <Flex align="center" gap="2" className="mb-3">
-                        <LangIcon className={colors.text} />
-                        <Heading size="4" className="text-[var(--Accent-dark-2)] capitalize">
-                          {language}
-                        </Heading>
-                      </Flex>
-                      <Grid columns={{ initial: "1", md: "2" }} gap="3">
-                        {items.map((content) => (
-                          <Card 
-                            key={content._id} 
-                            className={`p-4 cursor-pointer transition-all hover:shadow-md ${
-                              selectedContent?._id === content._id ? "ring-2 ring-[var(--Accent-default)]" : ""
-                            }`}
-                            onClick={() => setSelectedContent(content)}
-                          >
-                            <Flex gap="3" align="start">
-                              <Box className={`p-2 rounded-lg ${colors.bg}`}>
-                                <FaCode className={colors.text} />
-                              </Box>
-                              <Box className="flex-1">
-                                <Text className="font-medium">{content.title}</Text>
-                                <Text className="text-gray-500 text-sm line-clamp-1">
-                                  {content.description || content.topic || "No description"}
-                                </Text>
-                                <Flex gap="1" className="mt-2" wrap="wrap">
-                                  {content.tags.slice(0, 2).map((tag, i) => (
-                                    <span key={i} className="px-2 py-0.5 bg-gray-100 rounded text-xs">
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </Flex>
-                              </Box>
-                            </Flex>
-                          </Card>
-                        ))}
-                      </Grid>
-                    </Box>
-                  );
-                })}
-              </Flex>
-            )}
-          </Box>
+          {/* Language Filter */}
+          <div className="flex items-center gap-2">
+            <FaCode className="text-gray-400" />
+            <select
+              value={filterLanguage}
+              onChange={(e) => setFilterLanguage(e.target.value)}
+              className="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--Primary)]"
+            >
+              <option value="all">All Languages</option>
+              <option value="python">Python</option>
+              <option value="java">Java</option>
+              <option value="javascript">JavaScript</option>
+              <option value="typescript">TypeScript</option>
+              <option value="cpp">C++</option>
+            </select>
+          </div>
 
-          {/* Code Preview */}
-          {selectedContent && (
-            <Card className="p-6 flex-1 max-h-[700px] overflow-y-auto sticky top-6">
-              <Heading size="5" className="mb-2">{selectedContent.title}</Heading>
-              <Flex gap="2" className="mb-4" wrap="wrap">
-                <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
-                  {selectedContent.language || "code"}
-                </span>
-                {selectedContent.tags.map((tag, i) => (
-                  <span key={i} className="px-2 py-1 bg-gray-100 rounded text-xs">
-                    {tag}
-                  </span>
-                ))}
-              </Flex>
+          {/* Difficulty Filter */}
+          <div>
+            <select
+              value={filterDifficulty}
+              onChange={(e) => setFilterDifficulty(e.target.value)}
+              className="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--Primary)]"
+            >
+              <option value="all">All Levels</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-              {selectedContent.description && (
-                <Box className="mb-4 p-3 bg-gray-50 rounded">
-                  <Text className="text-gray-700">{selectedContent.description}</Text>
-                </Box>
-              )}
+      {/* Materials List */}
+      <div className="space-y-4">
+        {filteredMaterials.map((material) => {
+          const LanguageIcon = languageIcons[material.language];
+          return (
+            <div
+              key={material.id}
+              className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300"
+            >
+              <div className="p-6">
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Info Section */}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
+                            languageColors[material.language]
+                          }`}
+                        >
+                          <LanguageIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg hover:text-[var(--Primary)] transition-colors">
+                            {material.title}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                difficultyColors[material.difficulty]
+                              }`}
+                            >
+                              {material.difficulty.charAt(0).toUpperCase() +
+                                material.difficulty.slice(1)}
+                            </span>
+                            <span className="text-gray-400 text-xs">•</span>
+                            <span className="text-gray-500 text-xs">
+                              {material.exercises} exercises
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-              <Box className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <pre className="text-green-400 text-sm font-mono whitespace-pre-wrap">
-                  {selectedContent.content || "No code available."}
-                </pre>
-              </Box>
-            </Card>
-          )}
-        </Flex>
-      </Box>
-    </Theme>
+                    <p className="text-gray-600 text-sm mb-4">{material.description}</p>
+
+                    {/* Meta */}
+                    <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                      <span className="flex items-center gap-1">
+                        <FaFolder className="w-3 h-3" />
+                        {material.topic}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <FaCalendar className="w-3 h-3" />
+                        Week {material.week}
+                      </span>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2">
+                      {material.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Code Preview */}
+                  <div className="lg:w-96">
+                    <div className="bg-gray-900 rounded-lg overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
+                        <span className="text-gray-400 text-xs">Preview</span>
+                        <button
+                          onClick={() => handleCopyCode(material.id, material.codePreview)}
+                          className="flex items-center gap-1 text-gray-400 hover:text-white text-xs transition-colors"
+                        >
+                          {copiedId === material.id ? (
+                            <>
+                              <FaCheckCircle className="w-3 h-3 text-green-400" />
+                              <span className="text-green-400">Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <FaCopy className="w-3 h-3" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <pre className="p-4 text-xs text-gray-300 overflow-x-auto max-h-32">
+                        <code>{material.codePreview}</code>
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-[var(--Primary)] text-white rounded-lg hover:bg-[var(--Primary-dark)] transition-colors text-sm">
+                    <FaEye className="w-4 h-4" />
+                    View Full Code
+                  </button>
+                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                    <FaDownload className="w-4 h-4" />
+                    Download
+                  </button>
+                  <button className="flex items-center gap-2 px-4 py-2 border border-green-200 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-sm">
+                    <FaPlay className="w-4 h-4" />
+                    Run in Playground
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Empty State */}
+      {filteredMaterials.length === 0 && (
+        <div className="text-center py-12">
+          <FaFlask className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-600 mb-2">No lab materials found</h3>
+          <p className="text-gray-500">Try adjusting your search or filters</p>
+        </div>
+      )}
+    </div>
   );
 }
