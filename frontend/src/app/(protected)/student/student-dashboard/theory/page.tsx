@@ -50,26 +50,32 @@ export default function TheoryMaterialsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterTopic, setFilterTopic] = useState<string>("all");
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch materials from backend API
   useEffect(() => {
     const fetchMaterials = async () => {
       try {
         setLoading(true);
+        setError(null);
         const data = await contentService.getTheoryMaterials({
           type: filterType !== "all" ? filterType : undefined,
           topic: filterTopic !== "all" ? filterTopic : undefined,
           search: searchQuery || undefined,
         });
-        // Add thumbnail URLs if not present
-        const materialsWithThumbnails = data.map(m => ({
-          ...m,
-          thumbnailUrl: m.thumbnail || defaultThumbnails[m.type as keyof typeof defaultThumbnails] || defaultThumbnails.notes,
-          tags: [],
-        }));
+        // Filter out invalid materials and add thumbnail URLs
+        const materialsWithThumbnails = data
+          .filter(m => m && m.id && m.title && m.description && m.type && m.topic)
+          .map(m => ({
+            ...m,
+            thumbnailUrl: m.thumbnail || defaultThumbnails[m.type as keyof typeof defaultThumbnails] || defaultThumbnails.notes,
+            tags: [],
+          }));
         setMaterials(materialsWithThumbnails);
       } catch (error) {
         console.error("Failed to fetch theory materials:", error);
+        setError("Failed to load theory materials. Please try again later.");
+        setMaterials([]); // Set to empty array on error
       } finally {
         setLoading(false);
       }
@@ -78,9 +84,14 @@ export default function TheoryMaterialsPage() {
     fetchMaterials();
   }, [filterType, filterTopic, searchQuery]);
 
-  const topics = [...new Set(materials.map((m) => m.topic))];
+  const topics = [...new Set(materials.filter(m => m?.topic).map((m) => m.topic))];
 
   const filteredMaterials = materials.filter((material) => {
+    // Ensure material and its properties exist
+    if (!material || !material.title || !material.description) {
+      return false;
+    }
+    
     const matchesSearch =
       material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       material.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -165,8 +176,22 @@ export default function TheoryMaterialsPage() {
         </div>
       )}
 
+      {/* Error State */}
+      {error && !loading && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <div className="text-red-600 text-lg font-medium mb-2">⚠️ Error</div>
+          <p className="text-red-700">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Materials Grid */}
-      {!loading && (
+      {!loading && !error && (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMaterials.map((material) => {
             const TypeIcon = typeIcons[material.type as keyof typeof typeIcons];
@@ -239,7 +264,7 @@ export default function TheoryMaterialsPage() {
       )}
 
       {/* Empty State */}
-      {!loading && filteredMaterials.length === 0 && (
+      {!loading && !error && filteredMaterials.length === 0 && (
         <div className="text-center py-12">
           <FaBook className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-600 mb-2">No materials found</h3>

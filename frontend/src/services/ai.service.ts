@@ -49,6 +49,9 @@ interface ChatMessage {
 interface ChatResponse {
   response: string;
   sources?: string[];
+  search_results?: SearchResult[];
+  generated_content?: string;
+  action_taken?: string;
 }
 
 const getHeaders = () => {
@@ -123,7 +126,12 @@ export const aiService = {
   },
 
   // Chat Interface
-  async chat(messages: ChatMessage[], newMessage: string): Promise<ChatResponse> {
+  async chat(
+    messages: ChatMessage[], 
+    newMessage: string,
+    enableSearch: boolean = true,
+    enableGeneration: boolean = true
+  ): Promise<ChatResponse> {
     try {
       const response = await fetch(`${AI_BACKEND_URL}/chat`, {
         method: "POST",
@@ -131,6 +139,8 @@ export const aiService = {
         body: JSON.stringify({
           messages,
           message: newMessage,
+          enable_search: enableSearch,
+          enable_generation: enableGeneration,
         }),
       });
       

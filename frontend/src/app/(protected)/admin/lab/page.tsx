@@ -32,8 +32,8 @@ export default function LabPage() {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await api.get("/api/content?category=lab&limit=50");
-        setContents(response.data.data || []);
+        const response = await api.get("/cms/content?category=lab&limit=50");
+        setContents(response.data.data || response.data || []);
       } catch (error) {
         console.error("Error fetching lab content:", error);
       } finally {

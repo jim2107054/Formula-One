@@ -1,6 +1,7 @@
 import Cookies from "js-cookie";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000/api";
 
 export interface TheoryMaterial {
   id: string;
@@ -45,11 +46,11 @@ const getHeaders = (isFormData = false) => {
   const headers: Record<string, string> = {
     ...(token && { Authorization: `Bearer ${token}` }),
   };
-  
+
   if (!isFormData) {
     headers["Content-Type"] = "application/json";
   }
-  
+
   return headers;
 };
 
@@ -67,17 +68,28 @@ export const contentService = {
       if (filters?.topic) params.append("topic", filters.topic);
       if (filters?.week) params.append("week", filters.week.toString());
       if (filters?.search) params.append("search", filters.search);
-      
+
       const response = await fetch(`${BACKEND_URL}/content/theory?${params}`, {
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch theory materials");
       }
-      
+
       const data = await response.json();
-      return data.materials || [];
+      const materials = data.materials || [];
+
+      // Validate and ensure required fields exist
+      return materials.filter(
+        (m: any) =>
+          m &&
+          typeof m.id === "string" &&
+          typeof m.title === "string" &&
+          typeof m.description === "string" &&
+          typeof m.type === "string" &&
+          typeof m.topic === "string",
+      );
     } catch (error) {
       console.error("Get theory materials error:", error);
       throw error;
@@ -89,11 +101,11 @@ export const contentService = {
       const response = await fetch(`${BACKEND_URL}/content/theory/${id}`, {
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch theory material");
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error("Get theory material error:", error);
@@ -108,11 +120,11 @@ export const contentService = {
         headers: getHeaders(true),
         body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to create theory material");
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error("Create theory material error:", error);
@@ -120,18 +132,21 @@ export const contentService = {
     }
   },
 
-  async updateTheoryMaterial(id: string, formData: FormData): Promise<TheoryMaterial> {
+  async updateTheoryMaterial(
+    id: string,
+    formData: FormData,
+  ): Promise<TheoryMaterial> {
     try {
       const response = await fetch(`${BACKEND_URL}/content/theory/${id}`, {
         method: "PUT",
         headers: getHeaders(true),
         body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to update theory material");
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error("Update theory material error:", error);
@@ -145,7 +160,7 @@ export const contentService = {
         method: "DELETE",
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to delete theory material");
       }
@@ -170,17 +185,28 @@ export const contentService = {
       if (filters?.topic) params.append("topic", filters.topic);
       if (filters?.week) params.append("week", filters.week.toString());
       if (filters?.search) params.append("search", filters.search);
-      
+
       const response = await fetch(`${BACKEND_URL}/content/lab?${params}`, {
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch lab materials");
       }
-      
+
       const data = await response.json();
-      return data.materials || [];
+      const materials = data.materials || [];
+
+      // Validate and ensure required fields exist
+      return materials.filter(
+        (m: any) =>
+          m &&
+          typeof m.id === "string" &&
+          typeof m.title === "string" &&
+          typeof m.description === "string" &&
+          typeof m.language === "string" &&
+          typeof m.topic === "string",
+      );
     } catch (error) {
       console.error("Get lab materials error:", error);
       throw error;
@@ -192,11 +218,11 @@ export const contentService = {
       const response = await fetch(`${BACKEND_URL}/content/lab/${id}`, {
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch lab material");
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error("Get lab material error:", error);
@@ -211,11 +237,11 @@ export const contentService = {
         headers: getHeaders(true),
         body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to create lab material");
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error("Create lab material error:", error);
@@ -223,18 +249,21 @@ export const contentService = {
     }
   },
 
-  async updateLabMaterial(id: string, formData: FormData): Promise<LabMaterial> {
+  async updateLabMaterial(
+    id: string,
+    formData: FormData,
+  ): Promise<LabMaterial> {
     try {
       const response = await fetch(`${BACKEND_URL}/content/lab/${id}`, {
         method: "PUT",
         headers: getHeaders(true),
         body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to update lab material");
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error("Update lab material error:", error);
@@ -248,7 +277,7 @@ export const contentService = {
         method: "DELETE",
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to delete lab material");
       }
@@ -264,11 +293,11 @@ export const contentService = {
       const response = await fetch(`${BACKEND_URL}/content/stats`, {
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch content stats");
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error("Get content stats error:", error);
@@ -282,11 +311,11 @@ export const contentService = {
       const response = await fetch(`${BACKEND_URL}/content/topics`, {
         headers: getHeaders(),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch topics");
       }
-      
+
       const data = await response.json();
       return data.topics || [];
     } catch (error) {
