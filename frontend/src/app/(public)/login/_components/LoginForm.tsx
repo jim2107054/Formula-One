@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState, useCallback, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -170,6 +170,18 @@ const LoginForm: React.FC<LoginFormProps> = ({
             buttonText
           )}
         </Button>
+
+        <div className="mt-6 text-center">
+          <span className="text-sm text-gray-600">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/register"
+              className="text-[var(--Primary)] hover:text-[var(--Primary-dark)] font-medium"
+            >
+              Create Account
+            </Link>
+          </span>
+        </div>
       </form>
     </div>
   );

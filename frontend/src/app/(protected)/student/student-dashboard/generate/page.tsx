@@ -16,6 +16,7 @@ import {
   FaMagic,
 } from "react-icons/fa";
 import { BiSolidSlideshow } from "react-icons/bi";
+import aiService from "@/services/ai.service";
 
 type GenerationType = "notes" | "slides" | "code" | "summary" | "explanation";
 
@@ -201,6 +202,7 @@ export default function GeneratePage() {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
+  const [sources, setSources] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
 
   const selectedTypeInfo = generationTypes.find((t) => t.id === selectedType);
@@ -210,18 +212,30 @@ export default function GeneratePage() {
 
     setIsGenerating(true);
     setGeneratedContent(null);
+    setSources([]);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Return sample content based on type
-    if (selectedType === "code") {
-      setGeneratedContent(sampleGeneratedCode);
-    } else {
-      setGeneratedContent(sampleGeneratedNotes);
+    try {
+      // Call AI backend generate API
+      const response = await aiService.generate({
+        type: selectedType,
+        prompt: prompt,
+        topic: prompt,
+        language: "python",
+      });
+      
+      setGeneratedContent(response.content);
+      setSources(response.sources || []);
+    } catch (error) {
+      console.error("Generation error:", error);
+      // Fallback to sample content
+      if (selectedType === "code") {
+        setGeneratedContent(sampleGeneratedCode);
+      } else {
+        setGeneratedContent(sampleGeneratedNotes);
+      }
+    } finally {
+      setIsGenerating(false);
     }
-
-    setIsGenerating(false);
   };
 
   const handleCopy = () => {

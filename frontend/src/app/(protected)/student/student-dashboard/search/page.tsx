@@ -14,6 +14,7 @@ import {
   FaHistory,
 } from "react-icons/fa";
 import { BiSolidMagicWand } from "react-icons/bi";
+import aiService from "@/services/ai.service";
 
 interface SearchResult {
   id: string;
@@ -111,21 +112,25 @@ export default function SearchPage() {
     setIsSearching(true);
     setHasSearched(true);
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Filter dummy results based on query
-    const filtered = dummySearchResults.filter(
-      (result) =>
-        result.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        result.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        result.matchedKeywords.some((kw) =>
-          kw.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    );
-
-    setResults(filtered.length > 0 ? filtered : dummySearchResults);
-    setIsSearching(false);
+    try {
+      // Call AI backend search API
+      const searchResults = await aiService.search(searchQuery);
+      setResults(searchResults);
+    } catch (error) {
+      console.error("Search error:", error);
+      // Fallback to dummy results if API fails
+      const filtered = dummySearchResults.filter(
+        (result) =>
+          result.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          result.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          result.matchedKeywords.some((kw) =>
+            kw.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+      );
+      setResults(filtered.length > 0 ? filtered : dummySearchResults);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

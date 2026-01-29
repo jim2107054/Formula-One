@@ -16,6 +16,7 @@ import {
   FaPlus,
 } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
+import aiService from "@/services/ai.service";
 
 interface Message {
   id: string;
@@ -93,28 +94,6 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  const generateResponse = async (userMessage: string): Promise<string> => {
-    // Simulate AI response generation
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    const responses: Record<string, string> = {
-      neural:
-        "Neural networks are computing systems inspired by biological neural networks in the human brain. They consist of interconnected nodes (neurons) organized in layers:\n\n**Key Components:**\n1. **Input Layer** - Receives the initial data\n2. **Hidden Layers** - Process information through weighted connections\n3. **Output Layer** - Produces the final result\n\n**How They Learn:**\nNeural networks learn by adjusting the weights between neurons based on the error of their predictions. This process is called training and uses algorithms like backpropagation.\n\nWould you like me to explain any specific aspect in more detail?",
-      python:
-        "Python is an excellent language for beginners and experts alike! Here are the fundamentals:\n\n**Data Types:**\n- `int`, `float`, `str`, `bool`\n- `list`, `tuple`, `dict`, `set`\n\n**Control Flow:**\n```python\nif condition:\n    # code\nelif other_condition:\n    # code\nelse:\n    # code\n```\n\n**Functions:**\n```python\ndef my_function(param):\n    return result\n```\n\nWant me to generate practice exercises?",
-      default:
-        "That's a great question! Based on the course materials, here's what I found:\n\nThis topic is covered in **Week 3** of the course. The key concepts include:\n\n1. **Fundamental Principles** - Understanding the basics\n2. **Practical Applications** - How it's used in real scenarios\n3. **Common Patterns** - Best practices to follow\n\nI've referenced the following course materials:\n- Lecture Slides (Week 3)\n- Lab Exercise 3.2\n- Supplementary Notes\n\nWould you like me to elaborate on any of these points?",
-    };
-
-    const lowercaseMessage = userMessage.toLowerCase();
-    if (lowercaseMessage.includes("neural") || lowercaseMessage.includes("network")) {
-      return responses.neural;
-    } else if (lowercaseMessage.includes("python") || lowercaseMessage.includes("code")) {
-      return responses.python;
-    }
-    return responses.default;
-  };
-
   const handleSend = async () => {
     if (!input.trim()) return;
 
@@ -126,21 +105,41 @@ export default function ChatPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const userInput = input;
     setInput("");
     setIsTyping(true);
 
-    const response = await generateResponse(input);
+    try {
+      // Call AI backend chat API
+      const chatHistory = messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+      
+      const response = await aiService.chat(chatHistory, userInput);
 
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: response,
-      timestamp: new Date(),
-      sources: ["Week 3 Lecture Slides", "Lab Exercise 3.2"],
-    };
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: response.response,
+        timestamp: new Date(),
+        sources: response.sources || undefined,
+      };
 
-    setMessages((prev) => [...prev, assistantMessage]);
-    setIsTyping(false);
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      // Fallback response
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "I apologize, but I'm having trouble connecting to the service right now. Please try again in a moment.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

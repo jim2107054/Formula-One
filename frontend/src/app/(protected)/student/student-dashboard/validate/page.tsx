@@ -15,6 +15,7 @@ import {
   FaArrowRight,
 } from "react-icons/fa";
 import { BiCodeBlock } from "react-icons/bi";
+import aiService from "@/services/ai.service";
 
 type ValidationType = "syntax" | "grounding" | "rubric" | "test";
 
@@ -164,15 +165,26 @@ export default function ValidatePage() {
     setIsValidating(true);
     setResults(null);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-
-    // Return filtered sample results
-    const filteredResults = sampleValidationResults.filter((r) =>
-      selectedValidations.includes(r.type)
-    );
-    setResults(filteredResults);
-    setIsValidating(false);
+    try {
+      // Call AI backend validate API
+      const validationResults = await aiService.validate({
+        content: content,
+        contentType: contentType,
+        validations: selectedValidations,
+        language: "python",
+      });
+      
+      setResults(validationResults);
+    } catch (error) {
+      console.error("Validation error:", error);
+      // Fallback to sample results
+      const filteredResults = sampleValidationResults.filter((r) =>
+        selectedValidations.includes(r.type)
+      );
+      setResults(filteredResults);
+    } finally {
+      setIsValidating(false);
+    }
   };
 
   const overallScore =
