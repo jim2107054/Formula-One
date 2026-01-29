@@ -28,17 +28,18 @@ export default function UploadContentPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  const materialTypes = contentType === "theory" 
-    ? [
-        { id: "slide", label: "Lecture Slides", icon: BiSolidSlideshow },
-        { id: "pdf", label: "PDF Document", icon: FaFilePdf },
-        { id: "notes", label: "Notes", icon: FaFileAlt },
-        { id: "reference", label: "Reference", icon: FaBook },
-      ]
-    : [
-        { id: "code", label: "Code Files", icon: FaCode },
-        { id: "exercise", label: "Exercise", icon: FaFileAlt },
-      ];
+  const materialTypes =
+    contentType === "theory"
+      ? [
+          { id: "slide", label: "Lecture Slides", icon: BiSolidSlideshow },
+          { id: "pdf", label: "PDF Document", icon: FaFilePdf },
+          { id: "notes", label: "Notes", icon: FaFileAlt },
+          { id: "reference", label: "Reference", icon: FaBook },
+        ]
+      : [
+          { id: "code", label: "Code Files", icon: FaCode },
+          { id: "exercise", label: "Exercise", icon: FaFileAlt },
+        ];
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -69,12 +70,13 @@ export default function UploadContentPage() {
       formData.append("week", week);
       formData.append("type", materialType);
       formData.append("contentType", contentType);
-      tags.forEach(tag => formData.append("tags", tag));
-      files.forEach(file => formData.append("files", file));
+      tags.forEach((tag) => formData.append("tags", tag));
+      files.forEach((file) => formData.append("files", file));
 
-      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api";
+      const BACKEND_URL =
+        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000/api";
       const endpoint = contentType === "theory" ? "theory" : "lab";
-      
+
       const response = await fetch(`${BACKEND_URL}/content/${endpoint}`, {
         method: "POST",
         body: formData,
@@ -122,8 +124,12 @@ export default function UploadContentPage() {
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
           <FaCheckCircle className="text-green-500 w-6 h-6" />
           <div>
-            <p className="font-medium text-green-800">Content uploaded successfully!</p>
-            <p className="text-sm text-green-600">Your content is now available for students.</p>
+            <p className="font-medium text-green-800">
+              Content uploaded successfully!
+            </p>
+            <p className="text-sm text-green-600">
+              Your content is now available for students.
+            </p>
           </div>
         </div>
       )}
@@ -207,7 +213,9 @@ export default function UploadContentPage() {
           <h2 className="font-semibold">Content Details</h2>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Title *
+            </label>
             <input
               type="text"
               value={title}
@@ -219,7 +227,9 @@ export default function UploadContentPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -231,7 +241,9 @@ export default function UploadContentPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Topic *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Topic *
+              </label>
               <input
                 type="text"
                 value={topic}
@@ -242,7 +254,9 @@ export default function UploadContentPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Week</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Week
+              </label>
               <select
                 value={week}
                 onChange={(e) => setWeek(e.target.value)}
@@ -268,7 +282,9 @@ export default function UploadContentPage() {
                 type="text"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), handleAddTag())
+                }
                 placeholder="Add a tag"
                 className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--Primary)]"
               />
@@ -337,7 +353,9 @@ export default function UploadContentPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setFiles(files.filter((_, i) => i !== index))}
+                    onClick={() =>
+                      setFiles(files.filter((_, i) => i !== index))
+                    }
                     className="text-red-500 hover:text-red-700"
                   >
                     <FaTimes />

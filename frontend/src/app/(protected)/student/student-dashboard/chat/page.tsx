@@ -23,6 +23,9 @@ interface Message {
   content: string;
   timestamp: Date;
   sources?: string[];
+  searchResults?: any[];
+  generatedContent?: string;
+  actionTaken?: string;
 }
 
 interface ChatSession {
@@ -34,24 +37,24 @@ interface ChatSession {
 
 const quickActions = [
   {
-    icon: FaBook,
-    label: "Explain a concept",
-    prompt: "Can you explain the concept of ",
-  },
-  {
     icon: FaSearch,
     label: "Search materials",
-    prompt: "Find materials about ",
+    prompt: "Find materials about binary search trees",
+  },
+  {
+    icon: FaBook,
+    label: "Explain a concept",
+    prompt: "Explain dynamic programming in simple terms",
   },
   {
     icon: FaMagic,
     label: "Generate notes",
-    prompt: "Generate study notes for ",
+    prompt: "Generate notes on graph algorithms",
   },
   {
     icon: FaCheckCircle,
-    label: "Review my code",
-    prompt: "Please review this code and suggest improvements: ",
+    label: "Get summary",
+    prompt: "Summarize the key sorting algorithms",
   },
 ];
 
@@ -109,13 +112,13 @@ export default function ChatPage() {
     setIsTyping(true);
 
     try {
-      // Call AI backend chat API
+      // Call AI backend chat API with full capabilities
       const chatHistory = messages.map((m) => ({
         role: m.role,
         content: m.content,
       }));
       
-      const response = await aiService.chat(chatHistory, userInput);
+      const response = await aiService.chat(chatHistory, userInput, true, true);
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -123,6 +126,9 @@ export default function ChatPage() {
         content: response.response,
         timestamp: new Date(),
         sources: response.sources || undefined,
+        searchResults: response.search_results || undefined,
+        generatedContent: response.generated_content || undefined,
+        actionTaken: response.action_taken || undefined,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -288,6 +294,36 @@ export default function ChatPage() {
                     >
                       <p className="whitespace-pre-wrap">{message.content}</p>
                     </div>
+                    
+                    {/* Action Badge */}
+                    {message.actionTaken && message.role === "assistant" && (
+                      <div className="mt-2">
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                          {message.actionTaken === "search" && "🔍 Search Performed"}
+                          {message.actionTaken === "generation" && "✨ Content Generated"}
+                          {message.actionTaken === "explanation" && "📖 Explanation Provided"}
+                          {message.actionTaken === "summary" && "📝 Summary Created"}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Search Results */}
+                    {message.searchResults && message.searchResults.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {message.searchResults.slice(0, 3).map((result: any, idx: number) => (
+                          <div key={idx} className="p-3 bg-white border border-gray-200 rounded-lg text-sm">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-medium text-gray-900">{result.title}</span>
+                              <span className="text-xs text-gray-500">{Math.round(result.score * 100)}%</span>
+                            </div>
+                            <p className="text-xs text-gray-600 line-clamp-2">{result.excerpt}</p>
+                            <span className="text-xs text-[var(--Primary)] mt-1 block">{result.source}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Sources */}
                     {message.sources && message.role === "assistant" && (
                       <div className="mt-2 flex flex-wrap gap-2">
                         <span className="text-xs text-gray-500">Sources:</span>
@@ -301,6 +337,7 @@ export default function ChatPage() {
                         ))}
                       </div>
                     )}
+                    
                     <p className="text-xs text-gray-400 mt-1">
                       {message.timestamp.toLocaleTimeString([], {
                         hour: "2-digit",

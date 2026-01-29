@@ -55,27 +55,33 @@ export default function LabMaterialsPage() {
   const [filterLanguage, setFilterLanguage] = useState<string>("all");
   const [filterDifficulty, setFilterDifficulty] = useState<string>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch materials from backend API
   useEffect(() => {
     const fetchMaterials = async () => {
       try {
         setLoading(true);
+        setError(null);
         const data = await contentService.getLabMaterials({
           language: filterLanguage !== "all" ? filterLanguage : undefined,
           difficulty: filterDifficulty !== "all" ? filterDifficulty : undefined,
           search: searchQuery || undefined,
         });
-        // Add extra fields for display
-        const materialsWithExtras = data.map(m => ({
-          ...m,
-          codePreview: m.code || "",
-          tags: [],
-          exercises: 3,
-        }));
+        // Filter out invalid materials and add extra fields
+        const materialsWithExtras = data
+          .filter(m => m && m.id && m.title && m.description && m.language && m.topic)
+          .map(m => ({
+            ...m,
+            codePreview: m.code || "",
+            tags: [],
+            exercises: 3,
+          }));
         setMaterials(materialsWithExtras);
       } catch (error) {
         console.error("Failed to fetch lab materials:", error);
+        setError("Failed to load lab materials. Please try again later.");
+        setMaterials([]); // Set to empty array on error
       } finally {
         setLoading(false);
       }
@@ -85,6 +91,11 @@ export default function LabMaterialsPage() {
   }, [filterLanguage, filterDifficulty, searchQuery]);
 
   const filteredMaterials = materials.filter((material) => {
+    // Ensure material and its properties exist
+    if (!material || !material.title || !material.description) {
+      return false;
+    }
+    
     const matchesSearch =
       material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       material.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -171,6 +182,17 @@ export default function LabMaterialsPage() {
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <FaSpinner className="animate-spin text-4xl text-[var(--Primary)]" />
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <div className="text-red-600 text-lg font-medium mb-2">⚠️ Error</div>
+          <p className="text-red-700">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       ) : materials.length === 0 ? (
         <div className="text-center py-12">

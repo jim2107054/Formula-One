@@ -8,7 +8,8 @@
     "start": "node dist/app.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "lint": "eslint src/**/*.ts"
+    "lint": "eslint src/**/*.ts",
+    "seed:content": "ts-node src/scripts/seed-content.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
