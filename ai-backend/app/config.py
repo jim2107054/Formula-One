@@ -3,6 +3,7 @@ Configuration module for AI Backend service
 """
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -28,10 +29,14 @@ class Settings(BaseSettings):
     # Environment
     environment: str = "development"
     
+    # OpenAI Settings (optional)
+    openai_api_key: Optional[str] = None
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = "ignore"  # Ignore extra fields in environment
 
 
 @lru_cache()

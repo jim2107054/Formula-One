@@ -1,3 +1,9 @@
+import * as dotenv from "dotenv";
+import * as path from "path";
+
+// Load environment variables from .env file
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
 import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -8,13 +14,21 @@ import { healthRoutes } from "./api/health.routes";
 import { authRoutes } from "./api/auth.routes";
 import { cmsRoutes } from "./api/cms.routes";
 import { chatRoutes } from "./api/chat.routes";
+import { contentRoutes } from "./api/content.routes";
 
 // Create Express application
 const app: Application = express();
 
 // Connect to MongoDB
 import { connectDB } from "./config/database";
-connectDB();
+import { authService } from "./services/auth.service";
+
+// Initialize database and default users
+const initializeApp = async () => {
+  await connectDB();
+  await authService.initializeDefaultUsers();
+};
+initializeApp();
 
 // Middleware
 app.use(helmet()); // Security headers
@@ -28,6 +42,7 @@ app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/cms", cmsRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/content", contentRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

@@ -10,7 +10,7 @@ import { AxiosError } from "axios";
 export const authActions = {
   signup: async (credentials: SignupCredentials): Promise<LoginResponse> => {
     try {
-      const response = await api.post("/signup", credentials);
+      const response = await api.post("/auth/register", credentials);
 
       if (response.data?.success === false) {
         throw new Error(
@@ -38,7 +38,7 @@ export const authActions = {
 
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
     try {
-      const response = await api.post("/signin", credentials);
+      const response = await api.post("/auth/login", credentials);
 
       if (response.data?.success === false) {
         throw new Error(
@@ -66,7 +66,7 @@ export const authActions = {
 
   getProfile: async (): Promise<User> => {
     try {
-      const response = await api.get(`/me`);
+      const response = await api.get(`/auth/me`);
 
       if (response.data?.error) {
         throw new Error(response.data.error);
@@ -103,6 +103,6 @@ export const authActions = {
   },
 
   logout: async (): Promise<void> => {
-    await api.get("/signout");
+    await api.post("/auth/logout");
   },
 };

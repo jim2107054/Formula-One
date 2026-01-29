@@ -12,7 +12,6 @@ import {
   Text,
   Tooltip,
 } from "@radix-ui/themes";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -28,6 +27,10 @@ import {
   FaPlay,
   FaTags,
   FaUsers,
+  FaFlask,
+  FaUpload,
+  FaCog,
+  FaChartBar,
 } from "react-icons/fa";
 import { ImExit } from "react-icons/im";
 
@@ -39,34 +42,24 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: "/admin/user", label: "User", pattern: "user", icon: FaUsers },
-  { href: "/admin/module", label: "Module", pattern: "/module", icon: FaBook },
-  {
-    href: "/admin/section",
-    label: "Section",
-    pattern: "section",
-    icon: FaFolder,
-  },
-  { href: "/admin/lesson", label: "Lesson", pattern: "lesson", icon: FaPlay },
-  { href: "/admin/item", label: "Item", pattern: "item", icon: FaList },
-  { href: "/admin/tag", label: "Tag", pattern: "tag", icon: FaTags },
-  {
-    href: "/admin/enrollment",
-    label: "Enrollment",
-    pattern: "enrollment",
-    icon: FaGraduationCap,
-  },
+  { href: "/admin/content", label: "Content Manager", pattern: "content", icon: FaFolder },
+  { href: "/admin/theory", label: "Theory Materials", pattern: "/theory", icon: FaBook },
+  { href: "/admin/lab", label: "Lab Materials", pattern: "/lab", icon: FaFlask },
+  { href: "/admin/upload", label: "Upload Content", pattern: "upload", icon: FaUpload },
+  { href: "/admin/user", label: "Users", pattern: "user", icon: FaUsers },
+  { href: "/admin/analytics", label: "Analytics", pattern: "analytics", icon: FaChartBar },
   {
     href: "/admin/category",
-    label: "Category",
+    label: "Categories",
     pattern: "category",
     icon: BiCategory,
   },
+  { href: "/admin/tag", label: "Tags", pattern: "tag", icon: FaTags },
   {
-    href: "/admin/cms",
-    label: "CMS",
-    pattern: "cms",
-    icon: FaBook,
+    href: "/admin/settings",
+    label: "Settings",
+    pattern: "settings",
+    icon: FaCog,
   },
 ];
 
@@ -90,13 +83,12 @@ export default function SideNav() {
         p={sidebarCollapsed ? "5" : "3"}
       >
         {!sidebarCollapsed && (
-          <Image
-            src="/images/logo.png"
-            alt="ifen logo"
-            width={100}
-            height={30}
-            priority
-          />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">E</span>
+            </div>
+            <span className="text-lg font-bold text-[var(--Primary)]">EduAI</span>
+          </div>
         )}
         <IconButton
           variant="ghost"
