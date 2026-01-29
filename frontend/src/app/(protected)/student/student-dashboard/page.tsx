@@ -131,16 +131,6 @@ export default function StudentDashboard() {
 
             {/* Right column: sidebar */}
             <aside className=" max-xl:grid md:max-xl:grid-cols-1 max-xl:mb-6 xl:col-span-2 xl:space-y-6 xl:order-2 order-1 w-full max-xl:gap-8">
-              {/* <ZoomCard
-            time="09:00 - 18:00"
-            title="Zoom introductory lecture"
-            subtitle="Certified Neurofeedback Therapist"
-            meetingType="Zoom Meeting"
-            buttonText="Start Now"
-            onStartClick={handleStartMeeting}
-            className="max-xl:h-auto "
-          /> */}
-
               <div className="flex  md:justify-between max-md:w-fit xl:mt-11">
                 <h2 className="text-xl font-bold text-[var(--Primary)]">
                   {intl.formatMessage({
@@ -255,21 +245,6 @@ export default function StudentDashboard() {
                   </h2>
                 </div>
               </Link>
-              {/* <div>
-            <h3 className="primary-title">Upcoming Workshops</h3>
-            <div className="flex flex-col gap-4 mt-6">
-              <Frame
-                backSrc="/images/image-15.png"
-                frontSrc="/images/gradient-layer.png"
-                title="What is Neurofeedback and how it works?"
-              />
-              <Frame
-                backSrc="/images/image-16.png"
-                frontSrc="/images/gradient-layer.png"
-                title="Advancing Neurofeedback Practice"
-              />
-            </div>
-          </div> */}
             </aside>
           </div>
         </div>

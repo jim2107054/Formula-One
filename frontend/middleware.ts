@@ -9,7 +9,7 @@ const PROTECTED_ROUTES: Record<string, number[]> = {
   "/student/": [0, 1, 2], // all roles
 };
 
-const PUBLIC_ROUTES = ["/login", "/", "/api", "/cms", "/chat"];
+const PUBLIC_ROUTES = ["/login", "/", "/api"];
 
 function handleAuthenticatedRedirect(
   request: NextRequest,
