@@ -1,6 +1,15 @@
 "use client";
 
-import { Box, Card, Flex, Grid, Heading, Text, Button, Tabs } from "@radix-ui/themes";
+import {
+  Box,
+  Card,
+  Flex,
+  Grid,
+  Heading,
+  Text,
+  Button,
+  Tabs,
+} from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 import {
   FaChartLine,
@@ -133,7 +142,10 @@ export default function AnalyticsPage() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `analytics-${new Date().toISOString()}.csv`);
+      link.setAttribute(
+        "download",
+        `analytics-${new Date().toISOString()}.csv`,
+      );
       document.body.appendChild(link);
       link.click();
       link.parentElement?.removeChild(link);
@@ -177,20 +189,31 @@ export default function AnalyticsPage() {
           </Flex>
 
           {/* Metrics Grid */}
-          <Grid columns={{ initial: "1", sm: "2", lg: "3" }} gap="4" className="mb-8">
+          <Grid
+            columns={{ initial: "1", sm: "2", lg: "3" }}
+            gap="4"
+            className="mb-8"
+          >
             {metricCards.map((metric, index) => (
-              <Card key={index} className="p-4 hover:shadow-lg transition-shadow">
+              <Card
+                key={index}
+                className="p-4 hover:shadow-lg transition-shadow"
+              >
                 <Flex justify="between" align="start" className="mb-4">
                   <Box>
                     <Text className="text-gray-500 text-sm block mb-2">
                       {metric.title}
                     </Text>
-                    <Text className={`text-2xl font-bold text-${metric.color}-600`}>
+                    <Text
+                      className={`text-2xl font-bold text-${metric.color}-600`}
+                    >
                       {metric.value}
                     </Text>
                   </Box>
                   <Box className={`p-3 rounded-lg bg-${metric.color}-100`}>
-                    <metric.icon className={`text-${metric.color}-600 text-lg`} />
+                    <metric.icon
+                      className={`text-${metric.color}-600 text-lg`}
+                    />
                   </Box>
                 </Flex>
                 <Text className="text-green-600 text-xs font-medium">

@@ -95,7 +95,7 @@ export default function SettingsPage() {
 
   const handleNotificationChange = (
     key: keyof UserNotificationSettings,
-    value: boolean
+    value: boolean,
   ) => {
     setNotificationSettings((prev) => ({
       ...prev,
@@ -123,7 +123,10 @@ export default function SettingsPage() {
   const handleSaveNotifications = async () => {
     try {
       setLoading(true);
-      const res = await api.post("/api/admin/notification-settings", notificationSettings);
+      const res = await api.post(
+        "/api/admin/notification-settings",
+        notificationSettings,
+      );
       if (res.data?.success) {
         toast.success("Notification settings saved!");
       } else {
@@ -177,7 +180,9 @@ export default function SettingsPage() {
 
   return (
     <Box className="p-6">
-      <Heading size="8" className="mb-6">System Settings</Heading>
+      <Heading size="8" className="mb-6">
+        System Settings
+      </Heading>
 
       <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
         <Tabs.List>
@@ -198,7 +203,9 @@ export default function SettingsPage() {
         {/* General Settings */}
         <Tabs.Content value="general">
           <Card className="p-6">
-            <Heading size="5" className="mb-6">General Settings</Heading>
+            <Heading size="5" className="mb-6">
+              General Settings
+            </Heading>
 
             <Box className="space-y-6">
               {/* Application Name */}
@@ -238,7 +245,10 @@ export default function SettingsPage() {
                   type="number"
                   value={settings.sessionTimeout}
                   onChange={(e) =>
-                    handleSettingChange("sessionTimeout", parseInt(e.target.value))
+                    handleSettingChange(
+                      "sessionTimeout",
+                      parseInt(e.target.value),
+                    )
                   }
                   placeholder="30"
                 />
@@ -253,7 +263,10 @@ export default function SettingsPage() {
                   type="number"
                   value={settings.maxUploadSize}
                   onChange={(e) =>
-                    handleSettingChange("maxUploadSize", parseInt(e.target.value))
+                    handleSettingChange(
+                      "maxUploadSize",
+                      parseInt(e.target.value),
+                    )
                   }
                   placeholder="100"
                 />
@@ -273,7 +286,8 @@ export default function SettingsPage() {
               {settings.maintenanceMode && (
                 <Box className="p-3 bg-orange-50 border border-orange-200 rounded text-orange-800 text-sm flex gap-2">
                   <FaExclamationTriangle className="mt-0.5 flex-shrink-0" />
-                  Maintenance mode is enabled. Users will see a maintenance page.
+                  Maintenance mode is enabled. Users will see a maintenance
+                  page.
                 </Box>
               )}
 
@@ -294,7 +308,9 @@ export default function SettingsPage() {
         {/* Features Settings */}
         <Tabs.Content value="features">
           <Card className="p-6">
-            <Heading size="5" className="mb-6">Feature Settings</Heading>
+            <Heading size="5" className="mb-6">
+              Feature Settings
+            </Heading>
 
             <Box className="space-y-4">
               <Flex justify="between" align="center" className="py-3 border-b">
@@ -359,7 +375,9 @@ export default function SettingsPage() {
         {/* Notification Settings */}
         <Tabs.Content value="notifications">
           <Card className="p-6">
-            <Heading size="5" className="mb-6">Notification Preferences</Heading>
+            <Heading size="5" className="mb-6">
+              Notification Preferences
+            </Heading>
 
             <Box className="space-y-4">
               <Flex justify="between" align="center" className="py-3 border-b">
@@ -431,7 +449,9 @@ export default function SettingsPage() {
           <Box className="space-y-4">
             {/* Clear Cache */}
             <Card className="p-6">
-              <Heading size="5" className="mb-4">Clear Cache</Heading>
+              <Heading size="5" className="mb-4">
+                Clear Cache
+              </Heading>
               <Text className="text-gray-600 mb-4">
                 Clear all cached data to free up space and refresh the system.
               </Text>
@@ -449,7 +469,9 @@ export default function SettingsPage() {
 
             {/* Reset to Defaults */}
             <Card className="p-6">
-              <Heading size="5" className="mb-4">Reset Settings</Heading>
+              <Heading size="5" className="mb-4">
+                Reset Settings
+              </Heading>
               <Text className="text-gray-600 mb-4">
                 Reset all settings to default values. This cannot be undone.
               </Text>
@@ -466,7 +488,9 @@ export default function SettingsPage() {
 
             {/* System Info */}
             <Card className="p-6">
-              <Heading size="5" className="mb-4">System Information</Heading>
+              <Heading size="5" className="mb-4">
+                System Information
+              </Heading>
               <Box className="space-y-3">
                 <Flex justify="between">
                   <Text>Version</Text>

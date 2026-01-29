@@ -2,7 +2,14 @@
 
 import { Box, Card, Flex, Grid, Heading, Text } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
-import { FaUsers, FaBook, FaFlask, FaFileAlt, FaComments, FaRobot } from "react-icons/fa";
+import {
+  FaUsers,
+  FaBook,
+  FaFlask,
+  FaFileAlt,
+  FaComments,
+  FaRobot,
+} from "react-icons/fa";
 import api from "@/util/api";
 
 interface Stats {
@@ -48,34 +55,58 @@ export default function AdminDashboard() {
   }, []);
 
   const statCards = [
-    { title: "Total Users", value: stats.totalUsers, icon: FaUsers, color: "blue" },
-    { title: "Total Content", value: stats.totalContent, icon: FaBook, color: "green" },
-    { title: "Theory Materials", value: stats.theoryContent, icon: FaFileAlt, color: "purple" },
-    { title: "Lab Materials", value: stats.labContent, icon: FaFlask, color: "orange" },
+    {
+      title: "Total Users",
+      value: stats.totalUsers,
+      icon: FaUsers,
+      color: "blue",
+    },
+    {
+      title: "Total Content",
+      value: stats.totalContent,
+      icon: FaBook,
+      color: "green",
+    },
+    {
+      title: "Theory Materials",
+      value: stats.theoryContent,
+      icon: FaFileAlt,
+      color: "purple",
+    },
+    {
+      title: "Lab Materials",
+      value: stats.labContent,
+      icon: FaFlask,
+      color: "orange",
+    },
   ];
 
   const features = [
     {
       title: "Content Management",
-      description: "Upload, organize, and manage course materials including slides, PDFs, code files, and notes.",
+      description:
+        "Upload, organize, and manage course materials including slides, PDFs, code files, and notes.",
       icon: FaBook,
       href: "/admin/content",
     },
     {
       title: "AI Content Generation",
-      description: "Generate learning materials using AI - create notes, slides, and code examples automatically.",
+      description:
+        "Generate learning materials using AI - create notes, slides, and code examples automatically.",
       icon: FaRobot,
       href: "/admin/ai-generate",
     },
     {
       title: "Analytics & Insights",
-      description: "View detailed analytics about user engagement, content performance, and platform usage.",
+      description:
+        "View detailed analytics about user engagement, content performance, and platform usage.",
       icon: FaBook,
       href: "/admin/analytics",
     },
     {
       title: "System Settings",
-      description: "Configure platform settings, notifications, features, and system maintenance.",
+      description:
+        "Configure platform settings, notifications, features, and system maintenance.",
       icon: FaComments,
       href: "/admin/settings",
     },
@@ -83,13 +114,20 @@ export default function AdminDashboard() {
 
   return (
     <Box className="p-6">
-      <Heading size="8" className="mb-6">Admin Dashboard</Heading>
+      <Heading size="8" className="mb-6">
+        Admin Dashboard
+      </Heading>
       <Text className="text-gray-600 mb-8">
-        Welcome to the AI-Powered Learning Platform. Manage content, users, and AI features.
+        Welcome to the AI-Powered Learning Platform. Manage content, users, and
+        AI features.
       </Text>
 
       {/* Stats Grid */}
-      <Grid columns={{ initial: "1", sm: "2", lg: "4" }} gap="4" className="mb-8">
+      <Grid
+        columns={{ initial: "1", sm: "2", lg: "4" }}
+        gap="4"
+        className="mb-8"
+      >
         {statCards.map((stat, index) => (
           <Card key={index} className="p-4">
             <Flex align="center" gap="3">
@@ -98,9 +136,7 @@ export default function AdminDashboard() {
               </Box>
               <Box>
                 <Text className="text-gray-500 text-sm">{stat.title}</Text>
-                <Heading size="5">
-                  {loading ? "..." : stat.value}
-                </Heading>
+                <Heading size="5">{loading ? "..." : stat.value}</Heading>
               </Box>
             </Flex>
           </Card>
@@ -108,18 +144,28 @@ export default function AdminDashboard() {
       </Grid>
 
       {/* Features Section */}
-      <Heading size="5" className="mb-4">Platform Features</Heading>
+      <Heading size="5" className="mb-4">
+        Platform Features
+      </Heading>
       <Grid columns={{ initial: "1", md: "2" }} gap="4">
         {features.map((feature, index) => (
-          <Card key={index} className="p-4 hover:shadow-lg transition-shadow cursor-pointer" asChild>
+          <Card
+            key={index}
+            className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
+            asChild
+          >
             <a href={feature.href}>
               <Flex align="start" gap="3">
                 <Box className="p-3 rounded-lg bg-[var(--Accent-light)]">
                   <feature.icon className="text-[var(--Accent-default)] text-xl" />
                 </Box>
                 <Box>
-                  <Heading size="3" className="mb-1">{feature.title}</Heading>
-                  <Text className="text-gray-600 text-sm">{feature.description}</Text>
+                  <Heading size="3" className="mb-1">
+                    {feature.title}
+                  </Heading>
+                  <Text className="text-gray-600 text-sm">
+                    {feature.description}
+                  </Text>
                 </Box>
               </Flex>
             </a>
@@ -129,9 +175,12 @@ export default function AdminDashboard() {
 
       {/* Quick Info */}
       <Card className="mt-8 p-6 bg-[var(--Accent-light)]">
-        <Heading size="4" className="mb-2">🎓 Platform Credentials</Heading>
+        <Heading size="4" className="mb-2">
+          🎓 Platform Credentials
+        </Heading>
         <Text className="text-gray-700">
-          <strong>Admin Login:</strong> admin@learning.com / admin123<br />
+          <strong>Admin Login:</strong> admin@learning.com / admin123
+          <br />
           <strong>Student Login:</strong> student@learning.com / student123
         </Text>
       </Card>
