@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, Card, Flex, Heading, Select, Text, TextArea, TextField, Tabs } from "@radix-ui/themes";
+import { Box, Button, Card, Flex, Heading, Select, Text, TextArea, Tabs } from "@radix-ui/themes";
 import { useState } from "react";
 import { FaRobot, FaSpinner, FaCopy, FaSave, FaCheck } from "react-icons/fa";
 import api from "@/util/api";

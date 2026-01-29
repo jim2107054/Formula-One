@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, Card, Dialog, Flex, Grid, Heading, Select, Table, Text, TextField } from "@radix-ui/themes";
+import { Box, Button, Card, Dialog, Flex, Heading, Select, Table, Text, TextField } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import api from "@/util/api";
@@ -56,6 +56,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleFilter]);
 
   const handleSearch = () => {

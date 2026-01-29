@@ -140,7 +140,7 @@ export default function CmsPage() {
                   <select
                     className="w-full bg-neutral-800 border border-neutral-700 rounded p-2 text-white"
                     value={category}
-                    onChange={(e) => setCategory(e.target.value as any)}
+                    onChange={(e) => setCategory(e.target.value as "theory" | "lab")}
                   >
                     <option value="theory">Theory</option>
                     <option value="lab">Lab</option>
@@ -153,7 +153,7 @@ export default function CmsPage() {
                   <select
                     className="w-full bg-neutral-800 border border-neutral-700 rounded p-2 text-white"
                     value={contentType}
-                    onChange={(e) => setContentType(e.target.value as any)}
+                    onChange={(e) => setContentType(e.target.value as "slides" | "pdf" | "code" | "notes")}
                   >
                     <option value="notes">Notes</option>
                     <option value="slides">Slides</option>

@@ -8,7 +8,6 @@ import {
   FaJs,
   FaDownload,
   FaSearch,
-  FaFilter,
   FaCode,
   FaPlay,
   FaCopy,
@@ -142,8 +141,6 @@ export default function LabMaterialsPage() {
   const [filterLanguage, setFilterLanguage] = useState<string>("all");
   const [filterDifficulty, setFilterDifficulty] = useState<string>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  const topics = [...new Set(dummyLabMaterials.map((m) => m.topic))];
 
   const filteredMaterials = materials.filter((material) => {
     const matchesSearch =

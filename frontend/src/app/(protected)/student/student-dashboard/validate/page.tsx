@@ -9,12 +9,9 @@ import {
   FaFileAlt,
   FaSpinner,
   FaShieldAlt,
-  FaLightbulb,
   FaBug,
   FaClipboardCheck,
-  FaArrowRight,
 } from "react-icons/fa";
-import { BiCodeBlock } from "react-icons/bi";
 import aiService from "@/services/ai.service";
 
 type ValidationType = "syntax" | "grounding" | "rubric" | "test";

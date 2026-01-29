@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import {
   FaBook,
   FaFilePdf,
@@ -9,7 +10,6 @@ import {
   FaEye,
   FaSearch,
   FaFilter,
-  FaTags,
   FaCalendar,
   FaFolder,
 } from "react-icons/fa";
@@ -125,11 +125,10 @@ const typeColors = {
 };
 
 export default function TheoryMaterialsPage() {
-  const [materials, setMaterials] = useState<TheoryMaterial[]>(dummyMaterials);
+  const [materials] = useState<TheoryMaterial[]>(dummyMaterials);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterTopic, setFilterTopic] = useState<string>("all");
-  const [selectedMaterial, setSelectedMaterial] = useState<TheoryMaterial | null>(null);
 
   const topics = [...new Set(dummyMaterials.map((m) => m.topic))];
 
@@ -225,10 +224,12 @@ export default function TheoryMaterialsPage() {
             >
               {/* Thumbnail */}
               <div className="relative h-40 overflow-hidden">
-                <img
+                <Image
                   src={material.thumbnailUrl}
                   alt={material.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  unoptimized
                 />
                 <div className="absolute top-3 left-3">
                   <span
