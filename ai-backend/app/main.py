@@ -1,102 +1,83 @@
 """
-FastAPI Application Entry Point for Formula One AI Backend
-Provides RAG, Generation, and Validation services
+FastAPI application entry point for AI Backend.
+
+This service provides:
+- Smart Agent with intent classification and persistent memory
+- Document upload and Q&A via Gemini API
+- Theory and lab code generation
 """
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from contextlib import asynccontextmanager
-import logging
+from app.api import gemini_rag_routes, generation_router, smart_agent, validation
 
-from app.config import get_settings
-from app.api import health, rag, generation, validation, search, generate, validate, chat
+# Load environment variables from .env file
+load_dotenv()
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# Create FastAPI application
+app = FastAPI(
+    title="AI Backend Service",
+    description="Smart AI agent with persistent memory and intelligent routing",
+    version="1.0.0"
 )
-logger = logging.getLogger(__name__)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure appropriately for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Health check endpoint
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+@app.get("/health", tags=["Health"])
+async def health_check():
     """
-    Lifespan context manager for startup and shutdown events
+    Health check endpoint to verify service status.
+
+    Returns:
+        dict: Service status and version information
     """
-    # Startup
-    logger.info("Starting AI Backend service...")
-    settings = get_settings()
-    logger.info(f"Environment: {settings.environment}")
-    logger.info(f"Version: {settings.app_version}")
-    
-    yield
-    
-    # Shutdown
-    logger.info("Shutting down AI Backend service...")
+    return {
+        "status": "healthy",
+        "service": "ai-backend",
+        "version": "1.0.0"
+    }
+
+# Include routers - Clean API structure
+# Smart Agent: Intelligent routing with persistent memory (PRIMARY)
+app.include_router(smart_agent.router,
+                   prefix="/api/v1/agent", tags=["Smart Agent"])
+
+# Gemini RAG: Direct upload and ask (for manual control)
+app.include_router(gemini_rag_routes.router,
+                   prefix="/api/v1", tags=["Gemini RAG"])
+
+# Generation: Direct theory/lab generation (for manual control)
+app.include_router(generation_router.router,
+                   prefix="/api/v1/generation", tags=["Generation"])
+
+# Validation: Code validation and AI review
+app.include_router(validation.router,
+                   prefix="/api/v1", tags=["Validation"])
+
+# Root endpoint
 
 
-def create_app() -> FastAPI:
+@app.get("/", tags=["Root"])
+async def root():
     """
-    Create and configure FastAPI application
+    Root endpoint providing API information.
+
+    Returns:
+        dict: Welcome message and documentation link
     """
-    settings = get_settings()
-    
-    app = FastAPI(
-        title=settings.app_name,
-        version=settings.app_version,
-        description="AI Backend service for Formula One learning platform",
-        docs_url=f"{settings.api_prefix}/docs",
-        redoc_url=f"{settings.api_prefix}/redoc",
-        openapi_url=f"{settings.api_prefix}/openapi.json",
-        lifespan=lifespan
-    )
-    
-    # Configure CORS for backend communication
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    
-    # Include routers
-    app.include_router(health.router, prefix=settings.api_prefix)
-    app.include_router(rag.router, prefix=settings.api_prefix)
-    app.include_router(generation.router, prefix=settings.api_prefix)
-    app.include_router(validation.router, prefix=settings.api_prefix)
-    app.include_router(search.router, prefix=settings.api_prefix)
-    app.include_router(generate.router, prefix=settings.api_prefix)
-    app.include_router(validate.router, prefix=settings.api_prefix)
-    app.include_router(chat.router, prefix=settings.api_prefix)
-    
-    # Root endpoint
-    @app.get("/")
-    async def root():
-        """Root endpoint with service information"""
-        return JSONResponse({
-            "service": settings.app_name,
-            "version": settings.app_version,
-            "status": "running",
-            "docs": f"{settings.api_prefix}/docs"
-        })
-    
-    return app
-
-
-# Create app instance
-app = create_app()
-
-
-if __name__ == "__main__":
-    import uvicorn
-    settings = get_settings()
-    
-    uvicorn.run(
-        "app.main:app",
-        host=settings.host,
-        port=settings.port,
-        reload=settings.debug,
-        log_level="info"
-    )
+    return {
+        "message": "AI Backend Service",
+        "docs": "/docs",
+        "health": "/health"
+    }

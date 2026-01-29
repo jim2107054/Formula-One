@@ -18,6 +18,7 @@ import { contentRoutes } from "./api/content.routes";
 import { userRoutes } from "./api/user.routes";
 import { categoryRoutes } from "./api/category.routes";
 import { tagRoutes } from "./api/tag.routes";
+import { aiRoutes } from "./api/ai.routes";
 
 // Create Express application
 const app: Application = express();
@@ -52,6 +53,9 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/tag", tagRoutes);
+
+// AI Backend Proxy Routes
+app.use("/api/ai", aiRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

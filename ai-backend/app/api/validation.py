@@ -1,85 +1,103 @@
 """
-Validation router
-Handles code validation, grounding checks, and rubric evaluation
+Validation API Router
+
+Provides endpoints for code validation and AI-powered code review.
 """
-from fastapi import APIRouter, status
-from pydantic import BaseModel
-from typing import Optional, List
-from enum import Enum
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
+from typing import Optional
+
+from app.validation.code_validator import CodeValidator
 
 
-router = APIRouter(prefix="/validation", tags=["Validation"])
+router = APIRouter()
+
+# Lazy initialization
+_validator: Optional[CodeValidator] = None
 
 
-class ValidationType(str, Enum):
-    """Types of validation"""
-    CODE = "code"
-    GROUNDING = "grounding"
-    RUBRIC = "rubric"
+def get_validator() -> CodeValidator:
+    """Get or create CodeValidator instance."""
+    global _validator
+    if _validator is None:
+        _validator = CodeValidator()
+    return _validator
 
 
+# Request/Response Models
 class ValidationRequest(BaseModel):
-    """Request model for validation"""
-    content: str
-    validation_type: ValidationType
-    reference: Optional[str] = None
-    criteria: Optional[List[str]] = None
-
-
-class ValidationResult(BaseModel):
-    """Result model for validation"""
-    valid: bool
-    score: Optional[float] = None
-    issues: List[str] = []
-    suggestions: List[str] = []
-
-
-class ValidationResponse(BaseModel):
-    """Response model for validation"""
-    validation_type: str
-    result: ValidationResult
-    message: str
-
-
-@router.post(
-    "/validate",
-    response_model=ValidationResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Validate Content",
-    description="Validate code, grounding, or against rubric (Not implemented yet)"
-)
-async def validate_content(request: ValidationRequest) -> ValidationResponse:
-    """
-    Validate content based on validation type
-    TODO: Implement validation logic
-    """
-    return ValidationResponse(
-        validation_type=request.validation_type.value,
-        result=ValidationResult(
-            valid=False,
-            issues=["Validation not implemented yet"]
-        ),
-        message="Validation not implemented yet"
+    """Request model for code validation."""
+    code: str = Field(..., description="Python code to validate")
+    problem_context: Optional[str] = Field(
+        None, description="Optional problem statement or context for the code"
     )
 
 
-@router.get(
-    "/status",
-    status_code=status.HTTP_200_OK,
-    summary="Validation Status",
-    description="Check validation system status"
-)
-async def validation_status() -> dict:
-    """
-    Get validation system status
-    TODO: Add validator checks
-    """
+class SyntaxResult(BaseModel):
+    """Result of syntax check."""
+    valid: bool
+    error: Optional[str] = None
+
+
+class ReviewResult(BaseModel):
+    """Result of AI code review."""
+    score: int = Field(..., ge=0, le=100)
+    issues: list = []
+    suggestions: list = []
+
+
+class ValidationResponse(BaseModel):
+    """Combined validation response."""
+    syntax: SyntaxResult
+    review: Optional[ReviewResult] = None
+
+
+# Endpoints
+@router.get("/")
+async def validation_root():
+    """Validation service information."""
     return {
-        "status": "not_configured",
-        "message": "Validation system not configured yet",
-        "validators": {
-            "code": False,
-            "grounding": False,
-            "rubric": False
-        }
+        "service": "code-validator",
+        "description": "Syntax checking and AI-powered code review",
+        "endpoints": {
+            "POST /validation/code": "Validate Python code"
+        },
+        "status": "ready"
     }
+
+
+@router.post("/validation/code", response_model=ValidationResponse)
+async def validate_code(request: ValidationRequest):
+    """
+    Validate Python code with syntax checking and AI review.
+
+    1. Checks for Python syntax errors
+    2. If syntax is valid, performs AI-powered code review
+
+    Returns combined results with syntax status and review feedback.
+    """
+    validator = get_validator()
+
+    try:
+        # Step 1: Check syntax
+        syntax_result = validator.check_syntax(request.code)
+
+        # Step 2: If syntax is valid, perform AI review
+        review_result = None
+        if syntax_result["valid"]:
+            review_result = await validator.ai_review(
+                request.code,
+                request.problem_context
+            )
+
+        return ValidationResponse(
+            syntax=SyntaxResult(**syntax_result),
+            review=ReviewResult(**review_result) if review_result else None
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Validation error: {str(e)}"
+        )

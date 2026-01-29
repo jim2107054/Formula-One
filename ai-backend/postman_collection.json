@@ -1,0 +1,589 @@
+{
+  "info": {
+    "_postman_id": "ai-backend-collection",
+    "name": "AI Backend - Formula One",
+    "description": "Complete API collection for testing the AI Backend service with Smart Agent, Gemini RAG, and Generation endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://ef9b7242b25a.ngrok-free.app",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & Root",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the service is healthy and running."
+          },
+          "response": []
+        },
+        {
+          "name": "Root Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Get API information and documentation link."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Smart Agent (Primary)",
+      "description": "Smart Agent with intent classification and persistent Pinecone memory. This is the PRIMARY API to use.",
+      "item": [
+        {
+          "name": "Agent Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", ""]
+            },
+            "description": "Get Smart Agent status and loaded documents count."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Document to Memory",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Upload a PDF or TXT file to persistent memory (Pinecone)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", "upload"]
+            },
+            "description": "Upload a document to Pinecone memory. Supports PDF and text files. Documents are chunked and stored with embeddings."
+          },
+          "response": []
+        },
+        {
+          "name": "Smart Ask - Theory Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Explain binary search algorithm with slides\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/ask",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", "ask"]
+            },
+            "description": "Smart endpoint that classifies intent and routes to appropriate generator. This request will be classified as 'theory' and generate slides."
+          },
+          "response": []
+        },
+        {
+          "name": "Smart Ask - Lab Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Write Python code for bubble sort algorithm\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/ask",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", "ask"]
+            },
+            "description": "Smart endpoint that classifies intent and routes to lab generator. This request will be classified as 'lab' and generate code."
+          },
+          "response": []
+        },
+        {
+          "name": "Smart Ask - Chat Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What is the time complexity of quicksort?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/ask",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", "ask"]
+            },
+            "description": "Smart endpoint for general Q&A. This request will be classified as 'chat' and return a conversational answer."
+          },
+          "response": []
+        },
+        {
+          "name": "Classify Intent Only",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Create notes about data structures\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/classify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", "classify"]
+            },
+            "description": "Classify intent without generating content. Useful for debugging how queries are routed."
+          },
+          "response": []
+        },
+        {
+          "name": "Memory Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/memory/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", "memory", "status"]
+            },
+            "description": "Get the status of persistent memory - shows loaded documents and total vector count in Pinecone."
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Memory",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/memory/clear",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", "memory", "clear"]
+            },
+            "description": "Clear all documents from Pinecone memory. WARNING: This deletes all vectors!"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Gemini RAG (Direct)",
+      "description": "Direct Gemini API endpoints for manual document upload and Q&A.",
+      "item": [
+        {
+          "name": "Upload to Gemini",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Upload file directly to Gemini File API"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "upload"]
+            },
+            "description": "Upload a document directly to Gemini's File API. Use this for temporary context that doesn't need to persist."
+          },
+          "response": []
+        },
+        {
+          "name": "Ask Gemini",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What is the main topic of the uploaded document?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ask",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ask"]
+            },
+            "description": "Ask a question using documents uploaded to Gemini. Requires prior upload via /api/v1/upload."
+          },
+          "response": []
+        },
+        {
+          "name": "List Uploaded Files",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/files",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "files"]
+            },
+            "description": "List all files uploaded to Gemini in the current session."
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Gemini Files",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/files",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "files"]
+            },
+            "description": "Clear all files from the current Gemini session."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Generation (Direct)",
+      "description": "Direct content generation endpoints for theory and lab code.",
+      "item": [
+        {
+          "name": "Generation Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/generation/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "generation", ""]
+            },
+            "description": "Get generation service status."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Slides",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Binary Search Trees\",\n  \"type\": \"slides\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/generation/theory",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "generation", "theory"]
+            },
+            "description": "Generate presentation slides in JSON format for a topic."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Notes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Graph Algorithms\",\n  \"type\": \"notes\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/generation/theory",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "generation", "theory"]
+            },
+            "description": "Generate detailed notes in Markdown format for a topic."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Summary",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Dynamic Programming\",\n  \"type\": \"summary\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/generation/theory",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "generation", "theory"]
+            },
+            "description": "Generate a concise summary for a topic."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Lab - Python",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Implement a Stack data structure\",\n  \"language\": \"python\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/generation/lab",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "generation", "lab"]
+            },
+            "description": "Generate a Python lab exercise with problem statement, starter code, solution, and test cases."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Lab - JavaScript",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Implement a Queue using two stacks\",\n  \"language\": \"javascript\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/generation/lab",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "generation", "lab"]
+            },
+            "description": "Generate a JavaScript lab exercise with problem statement, starter code, solution, and test cases."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Workflows",
+      "description": "Example workflows to test the complete system.",
+      "item": [
+        {
+          "name": "1. Upload Document",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Step 1: Upload a course PDF or text file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", "upload"]
+            },
+            "description": "WORKFLOW STEP 1: Upload a document to persistent memory."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Check Memory Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/memory/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", "memory", "status"]
+            },
+            "description": "WORKFLOW STEP 2: Verify the document was stored in Pinecone."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Ask About Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Create slides explaining the main concepts from the uploaded document\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/agent/ask",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "agent", "ask"]
+            },
+            "description": "WORKFLOW STEP 3: Ask a question and get generated content based on the uploaded document."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Validation",
+      "description": "Code validation with syntax checking and AI-powered code review.",
+      "item": [
+        {
+          "name": "Validation Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", ""]
+            },
+            "description": "Get validation service status."
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Code - Valid Syntax",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"def add(a, b):\\n    return a + b\\n\\nresult = add(1, 2)\\nprint(result)\",\n  \"problem_context\": \"A function to add two numbers\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/validation/code",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "validation", "code"]
+            },
+            "description": "Validate Python code with valid syntax. Returns syntax check and AI review."
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Code - Syntax Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"def broken(\\n    return\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/validation/code",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "validation", "code"]
+            },
+            "description": "Test validation with code that has syntax errors. AI review is skipped."
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Code - Security Issue",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"import os\\nuser_input = input('Enter command: ')\\nos.system(user_input)\",\n  \"problem_context\": \"A script to run user commands\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/validation/code",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "validation", "code"]
+            },
+            "description": "Test validation with code that has security vulnerabilities. AI should detect the command injection risk."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
