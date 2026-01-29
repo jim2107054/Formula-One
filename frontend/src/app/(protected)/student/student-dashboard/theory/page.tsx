@@ -61,12 +61,14 @@ export default function TheoryMaterialsPage() {
           topic: filterTopic !== "all" ? filterTopic : undefined,
           search: searchQuery || undefined,
         });
-        // Add thumbnail URLs if not present
-        const materialsWithThumbnails = data.map(m => ({
-          ...m,
-          thumbnailUrl: m.thumbnail || defaultThumbnails[m.type as keyof typeof defaultThumbnails] || defaultThumbnails.notes,
-          tags: [],
-        }));
+        // Filter out invalid materials and add thumbnail URLs
+        const materialsWithThumbnails = data
+          .filter(m => m && m.id && m.title && m.description && m.type && m.topic)
+          .map(m => ({
+            ...m,
+            thumbnailUrl: m.thumbnail || defaultThumbnails[m.type as keyof typeof defaultThumbnails] || defaultThumbnails.notes,
+            tags: [],
+          }));
         setMaterials(materialsWithThumbnails);
       } catch (error) {
         console.error("Failed to fetch theory materials:", error);
@@ -78,9 +80,14 @@ export default function TheoryMaterialsPage() {
     fetchMaterials();
   }, [filterType, filterTopic, searchQuery]);
 
-  const topics = [...new Set(materials.map((m) => m.topic))];
+  const topics = [...new Set(materials.filter(m => m?.topic).map((m) => m.topic))];
 
   const filteredMaterials = materials.filter((material) => {
+    // Ensure material and its properties exist
+    if (!material || !material.title || !material.description) {
+      return false;
+    }
+    
     const matchesSearch =
       material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       material.description.toLowerCase().includes(searchQuery.toLowerCase());
