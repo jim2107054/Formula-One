@@ -8,25 +8,9 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional
 
-from app.gemini_rag.service import GeminiService
+from app.gemini_rag.service import get_gemini_service
 
 router = APIRouter()
-
-# Lazy initialization of Gemini service
-_gemini_service: Optional[GeminiService] = None
-
-
-def get_gemini_service() -> GeminiService:
-    """
-    Get or create the Gemini service instance.
-
-    Returns:
-        GeminiService: Singleton instance of the Gemini service
-    """
-    global _gemini_service
-    if _gemini_service is None:
-        _gemini_service = GeminiService()
-    return _gemini_service
 
 
 # Pydantic Models

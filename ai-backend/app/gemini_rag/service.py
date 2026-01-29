@@ -7,9 +7,26 @@ using Google's Gemini API for RAG operations.
 
 import os
 import tempfile
-from typing import List
+from typing import List, Optional
 from google import genai
 from google.genai import types
+
+
+# Singleton instance
+_gemini_service_instance: Optional["GeminiService"] = None
+
+
+def get_gemini_service() -> "GeminiService":
+    """
+    Get the singleton GeminiService instance.
+
+    Returns:
+        GeminiService: Shared singleton instance
+    """
+    global _gemini_service_instance
+    if _gemini_service_instance is None:
+        _gemini_service_instance = GeminiService()
+    return _gemini_service_instance
 
 
 class GeminiService:

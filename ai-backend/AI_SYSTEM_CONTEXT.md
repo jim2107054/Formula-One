@@ -74,7 +74,59 @@ _(Copilot: Mark as [x] when passing tests)_
 - [x] **API Endpoints:** `/gemini/upload` and `/gemini/ask` exposed via FastAPI (14 tests passing).
 - [ ] **Prompt Templates:** Created templates for "Theory Explanation" and "Code Generation".
 
-### Phase 3: Validation
+### Phase 3:  Generation Engine Architecture (Part 3)
+
+## 🎯 Goal
+[cite_start]Generate structured learning materials (Theory & Lab) grounded in the uploaded course content[cite: 30, 31, 37].
+**Core Constraint:** All generation must prioritize uploaded documents. [cite_start]External tools (Wikipedia) are used only for definitions or when context is missing[cite: 26].
+
+## 🧩 High-Level Flow
+
+1.  **User Request:** "Explain Binary Search with slides."
+2.  **Router:** Identifies intent -> `Theory` vs `Lab`.
+3.  **Context Assembly:**
+    * **Internal:** Existing uploaded files (already in Gemini's cache).
+    * **External:** Fetch Wikipedia summary (if term is obscure).
+4.  **Prompt Engineering:** Wrap user query in a strict System Prompt.
+    * *Theory Prompt:* "You are a Professor. Output JSON for slides..."
+    * *Lab Prompt:* "You are a Coding Tutor. Output Python code with comments..."
+5.  **Generation:** Call Gemini 1.5 Flash.
+6.  **Validation:** JSON parsing check (ensure output is valid JSON).
+
+---
+
+## 🛠 Component Design
+
+### 1. External Context Tool (`app/generation/tools/wiki.py`)
+* **Purpose:** Fetch definitions for concepts not fully covered in slides.
+* **Implementation:** Use `wikipedia` python library.
+* **Function:** `get_wiki_summary(topic: str) -> str`
+
+### 2. Theory Generator (`app/generation/theory_generator.py`)
+* **Endpoint:** `POST /generation/theory`
+* **Input:** `topic`, `format` (notes | slides | pdf_content)
+* **Logic:**
+    * Constructs a prompt: *"Based on the uploaded files, generate [format] for [topic]. if the topic is not in the files, use this external context: [wiki_summary]."*
+    * **Output Format:** Strict JSON or Markdown.
+        * *Slides:* JSON Array `[{title: "...", bullets: [...]}]`
+        * *Notes:* Markdown `# Title \n ## Section...`
+
+### 3. Lab Generator (`app/generation/lab_code_generator.py`)
+* **Endpoint:** `POST /generation/lab`
+* **Input:** `topic`, `language` (default: python)
+* **Logic:**
+    * Constructs a prompt: *"Generate a lab exercise for [topic]. Include a problem statement, solution code, and line-by-line explanation."*
+    * [cite_start]**Constraints:** Code must be syntactically correct[cite: 40].
+
+---
+
+## 🚀 Step-by-Step Implementation Plan
+
+1.  **External Tool:** Implement the Wikipedia wrapper.
+2.  **Theory Endpoint:** Create the prompt templates and API for generating Notes/Slides.
+3.  **Lab Endpoint:** Create the prompt templates and API for generating Code.
+
+### Phase 4: Validation
 
 - [ ] **Code Validator:** Python syntax checker for generated code.
 - [ ] **Hallucination Check:** Basic keyword overlap check.

@@ -1,17 +1,15 @@
 """
 FastAPI application entry point for AI Backend.
 
-This service is sandboxed and stateless, providing:
-- RAG-based retrieval over course materials
+This service provides:
+- Document upload and Q&A via Gemini API
 - Theory and lab code generation
-- Validation of AI outputs
 """
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import rag_router, generation_router, validation_router, rag, gemini_rag_routes
-from app.api.gemini_rag_routes import router as gemini_rag_router
+from app.api import gemini_rag_routes, generation_router
 
 # Load environment variables from .env file
 load_dotenv()
@@ -19,8 +17,8 @@ load_dotenv()
 # Create FastAPI application
 app = FastAPI(
     title="AI Backend Service",
-    description="Sandboxed AI service for RAG, generation, and validation",
-    version="0.1.0"
+    description="AI service for document-based generation using Gemini",
+    version="1.0.0"
 )
 
 # Configure CORS
@@ -46,19 +44,17 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "ai-backend",
-        "version": "0.1.0"
+        "version": "1.0.0"
     }
 
-# Include routers
-app.include_router(rag.router, prefix="/rag", tags=["RAG"])
+# Include routers - Clean API structure
+# Gemini RAG: Upload documents and ask questions
 app.include_router(gemini_rag_routes.router,
-                   prefix="/gemini", tags=["Gemini RAG"])
-app.include_router(gemini_rag_router, prefix="/api/v1", tags=["Gemini RAG"])
-app.include_router(rag_router.router, prefix="/rag-info", tags=["RAG Info"])
+                   prefix="/api/v1", tags=["Gemini RAG"])
+
+# Generation: Create theory materials and lab exercises
 app.include_router(generation_router.router,
-                   prefix="/generation", tags=["Generation"])
-app.include_router(validation_router.router,
-                   prefix="/validation", tags=["Validation"])
+                   prefix="/api/v1/generation", tags=["Generation"])
 
 # Root endpoint
 
