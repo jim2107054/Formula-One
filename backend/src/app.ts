@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -14,7 +15,14 @@ const app: Application = express();
 
 // Connect to MongoDB
 import { connectDB } from "./config/database";
-connectDB();
+import { authService } from "./services/auth.service";
+
+// Initialize database and default users
+const initializeApp = async () => {
+  await connectDB();
+  await authService.initializeDefaultUsers();
+};
+initializeApp();
 
 // Middleware
 app.use(helmet()); // Security headers
