@@ -119,6 +119,64 @@ class GeminiService:
         except Exception as e:
             raise Exception(f"Failed to generate response: {str(e)}")
 
+    async def chat_with_context(self, query: str, context: str) -> str:
+        """
+        Answer a question using provided context (from ChromaDB).
+        Does not require uploaded files.
+
+        Args:
+            query: The user's question.
+            context: Retrieved context from memory store.
+
+        Returns:
+            str: Generated response.
+        """
+        prompt = f"""Use the following context to answer the question.
+If the context doesn't contain relevant information, say so.
+
+CONTEXT:
+{context}
+
+QUESTION: {query}
+
+ANSWER:"""
+
+        try:
+            # Generate without requiring uploaded files
+            contents = [prompt]
+            if self.uploaded_files:
+                contents = contents + self.uploaded_files
+
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=contents
+            )
+            return response.text
+
+        except Exception as e:
+            raise Exception(f"Failed to generate response: {str(e)}")
+
+    async def generate_without_files(self, prompt: str) -> str:
+        """
+        Generate content without requiring uploaded files.
+        Used for intent classification and simple queries.
+
+        Args:
+            prompt: The prompt to send.
+
+        Returns:
+            str: Generated response.
+        """
+        try:
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=[prompt]
+            )
+            return response.text
+
+        except Exception as e:
+            raise Exception(f"Failed to generate response: {str(e)}")
+
     def _get_suffix(self, mime_type: str) -> str:
         mime_to_suffix = {
             "application/pdf": ".pdf",

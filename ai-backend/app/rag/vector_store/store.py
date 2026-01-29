@@ -1,36 +1,38 @@
 """
-Vector Store Manager - Singleton for ChromaDB
+Vector Store Manager - Singleton for Pinecone Cloud
 
 This module implements a singleton pattern for managing the vector store
-using ChromaDB with HuggingFace embeddings.
+using Pinecone with built-in inference for embeddings.
 """
 
 import os
 from typing import List, Optional
-from pathlib import Path
 
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
-from langchain.schema import Document
+from langchain_core.documents import Document
+from pinecone import Pinecone
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 
 class VectorStoreManager:
     """
-    Singleton class for managing ChromaDB vector store.
+    Singleton class for managing Pinecone vector store.
 
-    Uses HuggingFace embeddings (all-MiniLM-L6-v2) for local, CPU-friendly operations.
-    Maintains a persistent vector store in ./chroma_db directory.
+    Uses Pinecone's built-in inference API for embeddings.
+    Connects to Pinecone cloud service for vector storage.
     """
 
     _instance: Optional['VectorStoreManager'] = None
     _initialized: bool = False
 
-    def __new__(cls, persist_directory: str = "./chroma_db") -> 'VectorStoreManager':
+    def __new__(cls, index_name: str = None) -> 'VectorStoreManager':
         """
         Implement singleton pattern.
 
         Args:
-            persist_directory: Directory path for ChromaDB persistence (ignored if instance exists)
+            index_name: Pinecone index name (ignored if instance exists)
 
         Returns:
             VectorStoreManager: The single instance of the class
@@ -39,14 +41,14 @@ class VectorStoreManager:
             cls._instance = super(VectorStoreManager, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, persist_directory: str = "./chroma_db") -> None:
+    def __init__(self, index_name: str = None) -> None:
         """
-        Initialize the VectorStoreManager with embeddings and ChromaDB.
+        Initialize the VectorStoreManager with Pinecone.
 
         Only initializes once due to singleton pattern.
 
         Args:
-            persist_directory: Directory path for ChromaDB persistence
+            index_name: Pinecone index name (defaults to env var PINECONE_INDEX_NAME)
 
         Raises:
             RuntimeError: If initialization fails
@@ -56,43 +58,68 @@ class VectorStoreManager:
             return
 
         try:
-            # Initialize HuggingFace embeddings
-            self.embeddings = HuggingFaceEmbeddings(
-                model_name="sentence-transformers/all-MiniLM-L6-v2",
-                model_kwargs={'device': 'cpu'},
-                encode_kwargs={'normalize_embeddings': True}
-            )
+            # Get API key from environment
+            pinecone_api_key = os.getenv("PINECONE_API_KEY")
 
-            # Set up persistent directory
-            self.persist_directory = persist_directory
-            Path(persist_directory).mkdir(parents=True, exist_ok=True)
+            if not pinecone_api_key:
+                raise RuntimeError("PINECONE_API_KEY not found in environment")
 
-            # Initialize ChromaDB vector store
-            self.vector_store = Chroma(
-                persist_directory=self.persist_directory,
-                embedding_function=self.embeddings,
-                collection_name="course_materials"
-            )
+            # Initialize Pinecone client
+            self.pc = Pinecone(api_key=pinecone_api_key)
+
+            # Get index name from parameter or environment
+            self.index_name = index_name or os.getenv(
+                "PINECONE_INDEX_NAME", "hackathon-rag")
+
+            # Get host from environment
+            host = os.getenv(
+                "PINECONE_HOST", "https://hackathon-rag-ni0xwtw.svc.aped-4627-b74a.pinecone.io")
+
+            # Get the index with host
+            self.index = self.pc.Index(self.index_name, host=host)
+
+            # Embedding model - matches Pinecone index configuration
+            self.embedding_model = "llama-text-embed-v2"
 
             VectorStoreManager._initialized = True
+            print(
+                f"✅ VectorStoreManager initialized with Pinecone index: {self.index_name}")
 
         except Exception as e:
             raise RuntimeError(
                 f"Failed to initialize VectorStoreManager: {str(e)}") from e
 
-    def get_vector_store(self) -> Chroma:
+    def _embed_documents(self, texts: List[str]) -> List[List[float]]:
+        """Generate embeddings for documents using Pinecone inference."""
+        embeddings = self.pc.inference.embed(
+            model=self.embedding_model,
+            inputs=texts,
+            parameters={"input_type": "passage"}
+        )
+        return [e['values'] for e in embeddings]
+
+    def _embed_query(self, query: str) -> List[float]:
+        """Generate embedding for a query using Pinecone inference."""
+        embeddings = self.pc.inference.embed(
+            model=self.embedding_model,
+            inputs=[query],
+            parameters={"input_type": "query"}
+        )
+        return embeddings[0]['values']
+
+    def get_index(self):
         """
-        Get the ChromaDB vector store instance.
+        Get the Pinecone index instance.
 
         Returns:
-            Chroma: The vector store instance
+            Index: The Pinecone index instance
 
         Raises:
-            RuntimeError: If vector store is not initialized
+            RuntimeError: If index is not initialized
         """
-        if not hasattr(self, 'vector_store') or self.vector_store is None:
-            raise RuntimeError("Vector store not initialized")
-        return self.vector_store
+        if not hasattr(self, 'index') or self.index is None:
+            raise RuntimeError("Pinecone index not initialized")
+        return self.index
 
     def add_documents(self, documents: List[Document]) -> List[str]:
         """
@@ -115,8 +142,31 @@ class VectorStoreManager:
             raise ValueError("All items must be LangChain Document objects")
 
         try:
-            # Add documents and return IDs
-            ids = self.vector_store.add_documents(documents)
+            import uuid
+
+            # Extract texts from documents
+            texts = [doc.page_content for doc in documents]
+
+            # Generate embeddings using Pinecone inference
+            embeddings = self._embed_documents(texts)
+
+            # Prepare vectors for Pinecone
+            vectors = []
+            ids = []
+            for i, (doc, embedding) in enumerate(zip(documents, embeddings)):
+                vector_id = f"doc_{uuid.uuid4().hex[:8]}_{i}"
+                ids.append(vector_id)
+                vectors.append({
+                    "id": vector_id,
+                    "values": embedding,
+                    "metadata": {
+                        "text": doc.page_content,
+                        **doc.metadata
+                    }
+                })
+
+            # Upsert to Pinecone
+            self.index.upsert(vectors=vectors)
             return ids
         except Exception as e:
             raise RuntimeError(
@@ -150,25 +200,32 @@ class VectorStoreManager:
             raise ValueError("k must be a positive integer")
 
         try:
-            # Perform similarity search
-            if filter:
-                results = self.vector_store.similarity_search(
-                    query=query,
-                    k=k,
-                    filter=filter
-                )
-            else:
-                results = self.vector_store.similarity_search(
-                    query=query,
-                    k=k
-                )
-            return results
+            # Generate query embedding using Pinecone inference
+            query_embedding = self._embed_query(query)
+
+            # Query Pinecone
+            results = self.index.query(
+                vector=query_embedding,
+                top_k=k,
+                include_metadata=True,
+                filter=filter
+            )
+
+            # Convert to LangChain Documents
+            documents = []
+            for match in results.get("matches", []):
+                metadata = match.get("metadata", {})
+                text = metadata.pop("text", "")
+                doc = Document(page_content=text, metadata=metadata)
+                documents.append(doc)
+
+            return documents
         except Exception as e:
             raise RuntimeError(f"Similarity search failed: {str(e)}") from e
 
-    def delete_collection(self) -> None:
+    def delete_all(self) -> None:
         """
-        Delete the entire collection from the vector store.
+        Delete all vectors from the Pinecone index.
 
         Useful for testing or resetting the database.
 
@@ -176,23 +233,31 @@ class VectorStoreManager:
             RuntimeError: If deletion fails
         """
         try:
-            self.vector_store.delete_collection()
+            # Delete all vectors in the index
+            self.index.delete(delete_all=True)
+            print(f"✅ Deleted all vectors from index: {self.index_name}")
         except Exception as e:
-            raise RuntimeError(f"Failed to delete collection: {str(e)}") from e
+            raise RuntimeError(f"Failed to delete vectors: {str(e)}") from e
 
     def get_collection_count(self) -> int:
         """
-        Get the number of documents in the collection.
+        Get the number of vectors in the index.
 
         Returns:
-            int: Number of documents in the vector store
+            int: Number of vectors in the Pinecone index
 
         Raises:
             RuntimeError: If count retrieval fails
         """
         try:
-            collection = self.vector_store._collection
-            return collection.count()
+            stats = self.index.describe_index_stats()
+            return stats.total_vector_count
         except Exception as e:
             raise RuntimeError(
                 f"Failed to get collection count: {str(e)}") from e
+
+
+# Convenience function for getting the singleton instance
+def get_vector_store_manager() -> VectorStoreManager:
+    """Get the VectorStoreManager singleton instance."""
+    return VectorStoreManager()

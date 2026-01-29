@@ -128,3 +128,49 @@ Generate clear, well-structured educational content about the topic.
 """
 
         return base_prompt + format_instructions
+
+    async def generate_with_context(self, topic: str, context: str, material_type: str = "notes") -> dict:
+        """
+        Generate learning material using provided context from memory store.
+
+        Args:
+            topic: The topic to generate material for.
+            context: Retrieved context from ChromaDB.
+            material_type: Type of material - 'slides', 'notes', or 'summary'.
+
+        Returns:
+            dict: Contains topic, type, and generated content.
+        """
+        # Get external context from Wikipedia
+        wiki_summary = get_wiki_context(topic)
+
+        # Build prompt with memory context
+        prompt = self._build_context_prompt(
+            topic, context, wiki_summary, material_type)
+
+        # Generate using chat_with_context (doesn't require uploaded files)
+        response_text = await self.rag.chat_with_context(prompt, context)
+
+        return {
+            "topic": topic,
+            "type": material_type,
+            "content": response_text
+        }
+
+    def _build_context_prompt(self, topic: str, context: str, wiki_summary: str, material_type: str) -> str:
+        """Build prompt for context-aware generation."""
+        format_map = {
+            "slides": "a JSON array of slide objects with 'title' and 'bullet_points'",
+            "notes": "structured Markdown notes with headers and bullet points",
+            "summary": "a concise summary with overview and key takeaways"
+        }
+
+        format_instruction = format_map.get(
+            material_type, "clear educational content")
+
+        return f"""Generate {format_instruction} about: {topic}
+
+Use the provided context as your primary source.
+Wikipedia reference (for definitions only): {wiki_summary}
+
+Be comprehensive and educational."""

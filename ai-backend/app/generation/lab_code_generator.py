@@ -81,3 +81,32 @@ You must output valid JSON with the following structure:
 - The starter code should have clear TODO markers for students.
 """
         return prompt
+
+    async def generate_with_context(self, topic: str, context: str, language: str = "python") -> dict:
+        """
+        Generate a lab exercise using provided context from memory store.
+
+        Args:
+            topic: The topic for the lab exercise.
+            context: Retrieved context from ChromaDB.
+            language: Programming language for the code.
+
+        Returns:
+            dict: Contains topic, language, and generated lab content.
+        """
+        prompt = f"""Create a university-level lab exercise for {topic} in {language}.
+
+Use the following course context to match the appropriate difficulty level:
+{context}
+
+Output valid JSON with keys: problem_statement, starter_code, solution_code, explanation.
+Ensure code is syntactically correct with helpful comments."""
+
+        # Generate using chat_with_context
+        response_text = await self.rag.chat_with_context(prompt, context)
+
+        return {
+            "topic": topic,
+            "language": language,
+            "lab_content": response_text
+        }

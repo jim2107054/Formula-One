@@ -2,6 +2,7 @@
 FastAPI application entry point for AI Backend.
 
 This service provides:
+- Smart Agent with intent classification and persistent memory
 - Document upload and Q&A via Gemini API
 - Theory and lab code generation
 """
@@ -9,7 +10,7 @@ This service provides:
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import gemini_rag_routes, generation_router
+from app.api import gemini_rag_routes, generation_router, smart_agent
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,7 +18,7 @@ load_dotenv()
 # Create FastAPI application
 app = FastAPI(
     title="AI Backend Service",
-    description="AI service for document-based generation using Gemini",
+    description="Smart AI agent with persistent memory and intelligent routing",
     version="1.0.0"
 )
 
@@ -48,11 +49,15 @@ async def health_check():
     }
 
 # Include routers - Clean API structure
-# Gemini RAG: Upload documents and ask questions
+# Smart Agent: Intelligent routing with persistent memory (PRIMARY)
+app.include_router(smart_agent.router,
+                   prefix="/api/v1/agent", tags=["Smart Agent"])
+
+# Gemini RAG: Direct upload and ask (for manual control)
 app.include_router(gemini_rag_routes.router,
                    prefix="/api/v1", tags=["Gemini RAG"])
 
-# Generation: Create theory materials and lab exercises
+# Generation: Direct theory/lab generation (for manual control)
 app.include_router(generation_router.router,
                    prefix="/api/v1/generation", tags=["Generation"])
 
