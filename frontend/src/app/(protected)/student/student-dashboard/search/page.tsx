@@ -8,7 +8,6 @@ import {
   FaFileAlt,
   FaCode,
   FaLightbulb,
-  FaClock,
   FaArrowRight,
   FaStar,
   FaHistory,
@@ -237,10 +236,10 @@ export default function SearchPage() {
           <div className="bg-purple-50 rounded-xl p-6">
             <h3 className="font-medium mb-3">💡 Search Tips</h3>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li>• Try asking questions like "What is backpropagation?"</li>
-              <li>• Search for code examples: "Python sorting algorithms"</li>
-              <li>• Find related concepts: "difference between CNN and RNN"</li>
-              <li>• Look for specific topics: "Week 3 neural networks"</li>
+              <li>• Try asking questions like &quot;What is backpropagation?&quot;</li>
+              <li>• Search for code examples: &quot;Python sorting algorithms&quot;</li>
+              <li>• Find related concepts: &quot;difference between CNN and RNN&quot;</li>
+              <li>• Look for specific topics: &quot;Week 3 neural networks&quot;</li>
             </ul>
           </div>
         </div>
@@ -252,7 +251,7 @@ export default function SearchPage() {
           <div className="flex items-center justify-between">
             <p className="text-gray-600">
               Found <span className="font-medium text-gray-900">{results.length}</span> results
-              for "<span className="font-medium text-purple-600">{query}</span>"
+              for &quot;<span className="font-medium text-purple-600">{query}</span>&quot;
             </p>
           </div>
 

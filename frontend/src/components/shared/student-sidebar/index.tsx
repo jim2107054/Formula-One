@@ -11,7 +11,6 @@ import {
   FaCheckCircle,
   FaComments,
   FaFlask,
-  FaGraduationCap,
   FaHome,
   FaBars,
   FaTimes,
@@ -19,7 +18,6 @@ import {
   FaUser,
   FaCog,
 } from "react-icons/fa";
-import { BiCodeAlt } from "react-icons/bi";
 import Swal from "sweetalert2";
 
 interface NavItem {

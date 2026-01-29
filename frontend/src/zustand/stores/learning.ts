@@ -8,7 +8,6 @@ import type {
   ChatMessage,
   ChatSession,
   ChatState,
-  SearchResult,
   SearchState,
   GeneratedContent,
   GenerationState,
@@ -324,7 +323,7 @@ interface GenerationStore extends GenerationState {
 
 export const useGenerationStore = create<GenerationStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       generatedContent: null,
       loading: false,
       error: null,

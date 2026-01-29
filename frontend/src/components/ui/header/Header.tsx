@@ -186,15 +186,14 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Logo and Navigation */}
       <div className="flex  items-center gap-4 sm:gap-6 xl:gap-20 ">
         <Link href={"/student/student-dashboard"}>
-          <Image
-            src="/images/logo.png"
-            alt="IFEN logo"
-            width={120}
-            height={120}
-            className="object-contain w-20  md:w-28 md:h-12 "
-          />
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xl">E</span>
+            </div>
+            <span className="text-lg font-bold text-[var(--Primary)] hidden md:block">EduAI</span>
+          </div>
         </Link>
-        <h1 className="sr-only">IFEN DASHBOARD</h1>
+        <h1 className="sr-only">EduAI Learning Platform</h1>
         <div className="hidden md:block">
           <HeaderNav />
         </div>

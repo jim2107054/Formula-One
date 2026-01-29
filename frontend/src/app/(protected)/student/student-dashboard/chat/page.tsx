@@ -12,7 +12,6 @@ import {
   FaCheckCircle,
   FaLightbulb,
   FaHistory,
-  FaTrash,
   FaPlus,
 } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
@@ -78,11 +77,11 @@ const sampleSessions: ChatSession[] = [
 ];
 
 export default function ChatPage() {
-  const { user } = useAuth();
+  useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [sessions, setSessions] = useState<ChatSession[]>(sampleSessions);
+  const [sessions] = useState<ChatSession[]>(sampleSessions);
   const [activeSession, setActiveSession] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaFolder,
   FaBook,
@@ -13,65 +13,12 @@ import {
   FaFileAlt,
   FaFilePdf,
   FaCode,
+  FaSpinner,
 } from "react-icons/fa";
 import { BiSolidSlideshow } from "react-icons/bi";
 import Link from "next/link";
-
-interface ContentItem {
-  id: string;
-  title: string;
-  type: "theory" | "lab";
-  contentType: "slide" | "pdf" | "notes" | "code" | "reference";
-  topic: string;
-  week: number;
-  tags: string[];
-  status: "published" | "draft";
-  views: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const dummyContent: ContentItem[] = [
-  {
-    id: "1",
-    title: "Introduction to Machine Learning",
-    type: "theory",
-    contentType: "slide",
-    topic: "Machine Learning Basics",
-    week: 1,
-    tags: ["ML", "Introduction"],
-    status: "published",
-    views: 245,
-    createdAt: "2024-01-15",
-    updatedAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    title: "Python Data Structures Lab",
-    type: "lab",
-    contentType: "code",
-    topic: "Data Structures",
-    week: 1,
-    tags: ["Python", "Data Structures"],
-    status: "published",
-    views: 189,
-    createdAt: "2024-01-16",
-    updatedAt: "2024-01-18",
-  },
-  {
-    id: "3",
-    title: "Neural Networks Fundamentals",
-    type: "theory",
-    contentType: "pdf",
-    topic: "Deep Learning",
-    week: 2,
-    tags: ["Neural Networks", "Deep Learning"],
-    status: "published",
-    views: 312,
-    createdAt: "2024-01-22",
-    updatedAt: "2024-01-22",
-  },
-];
+import contentService, { TheoryMaterial, LabMaterial } from "@/services/content.service";
+import Swal from "sweetalert2";
 
 const contentTypeIcons: Record<string, React.ComponentType<{className?: string}>> = {
   slide: BiSolidSlideshow,
@@ -90,25 +37,81 @@ const contentTypeColors: Record<string, string> = {
 };
 
 export default function ContentManagerPage() {
-  const [content] = useState<ContentItem[]>(dummyContent);
+  const [theoryContent, setTheoryContent] = useState<TheoryMaterial[]>([]);
+  const [labContent, setLabContent] = useState<LabMaterial[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
-  const filteredContent = content.filter((item) => {
+  // Fetch all content from backend
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        setLoading(true);
+        const [theory, lab] = await Promise.all([
+          contentService.getTheoryMaterials({ search: searchQuery || undefined }),
+          contentService.getLabMaterials({ search: searchQuery || undefined }),
+        ]);
+        setTheoryContent(theory);
+        setLabContent(lab);
+      } catch (error) {
+        console.error("Failed to fetch content:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, [searchQuery]);
+
+  // Combine theory and lab content for display
+  const allContent = [
+    ...theoryContent.map(t => ({ ...t, contentType: t.type, type: "theory" as const, status: "published" as const, tags: [] })),
+    ...labContent.map(l => ({ ...l, contentType: "code", type: "lab" as const, status: "published" as const, tags: [], views: l.downloads || 0 })),
+  ];
+
+  const filteredContent = allContent.filter((item) => {
     const matchesSearch =
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.topic.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === "all" || item.type === filterType;
-    const matchesStatus = filterStatus === "all" || item.status === filterStatus;
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesType;
   });
 
   const stats = {
-    total: content.length,
-    theory: content.filter((c) => c.type === "theory").length,
-    lab: content.filter((c) => c.type === "lab").length,
-    published: content.filter((c) => c.status === "published").length,
+    total: allContent.length,
+    theory: theoryContent.length,
+    lab: labContent.length,
+    published: allContent.length,
+  };
+
+  const handleDelete = async (id: string, type: string) => {
+    const result = await Swal.fire({
+      title: "Delete this content?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        if (type === "theory") {
+          await contentService.deleteTheoryMaterial(id);
+          setTheoryContent(prev => prev.filter(t => t.id !== id));
+        } else {
+          await contentService.deleteLabMaterial(id);
+          setLabContent(prev => prev.filter(l => l.id !== id));
+        }
+        Swal.fire("Deleted!", "Content has been deleted.", "success");
+      } catch (error) {
+        console.error("Delete error:", error);
+        Swal.fire("Error!", "Failed to delete content.", "error");
+      }
+    }
   };
 
   return (
@@ -180,57 +183,75 @@ export default function ContentManagerPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Content</th>
-              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Type</th>
-              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Topic</th>
-              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Status</th>
-              <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredContent.map((item) => {
-              const ContentIcon = contentTypeIcons[item.contentType];
-              return (
-                <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${contentTypeColors[item.contentType]}`}>
-                        <ContentIcon className="w-5 h-5" />
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <FaSpinner className="w-8 h-8 text-[var(--Primary)] animate-spin" />
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Content</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Type</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Topic</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Status</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredContent.map((item) => {
+                const ContentIcon = contentTypeIcons[item.contentType] || FaFileAlt;
+                return (
+                  <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${contentTypeColors[item.contentType] || "bg-gray-100 text-gray-600"}`}>
+                          <ContentIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{item.title}</p>
+                          <p className="text-xs text-gray-500">Week {item.week}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{item.title}</p>
-                        <p className="text-xs text-gray-500">Week {item.week}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.type === "theory" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
+                        {item.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{item.topic}</td>
+                    <td className="px-6 py-4">
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        published
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button className="p-2 hover:bg-gray-100 rounded-lg"><FaEye className="w-4 h-4 text-gray-500" /></button>
+                        <button className="p-2 hover:bg-gray-100 rounded-lg"><FaEdit className="w-4 h-4 text-blue-500" /></button>
+                        <button 
+                          className="p-2 hover:bg-red-50 rounded-lg"
+                          onClick={() => handleDelete(item.id, item.type)}
+                        >
+                          <FaTrash className="w-4 h-4 text-red-500" />
+                        </button>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.type === "theory" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
-                      {item.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{item.topic}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.status === "published" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <button className="p-2 hover:bg-gray-100 rounded-lg"><FaEye className="w-4 h-4 text-gray-500" /></button>
-                      <button className="p-2 hover:bg-gray-100 rounded-lg"><FaEdit className="w-4 h-4 text-blue-500" /></button>
-                      <button className="p-2 hover:bg-red-50 rounded-lg"><FaTrash className="w-4 h-4 text-red-500" /></button>
-                    </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filteredContent.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-center py-8 text-gray-500">
+                    No content found. <Link href="/admin/upload" className="text-[var(--Primary)] hover:underline">Upload new content</Link>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

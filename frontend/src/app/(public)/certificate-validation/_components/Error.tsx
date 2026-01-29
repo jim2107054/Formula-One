@@ -23,12 +23,12 @@ export default function Error({
         <span className="text-[var(--Accent-default)]">[{serialNumber}]</span>
         <span>
           {" "}
-          could not be verified by IFEN.
+          could not be verified by EduAI.
           <br />
           The record does not match any valid certificate in our database, or it
           may have been entered incorrectly.
           <br />
-          Please check the Certificate ID and try again, or contact IFEN for
+          Please check the Certificate ID and try again, or contact EduAI for
           further assistance.
         </span>
       </div>
