@@ -20,6 +20,12 @@
 			"key": "token",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "chatSessionId",
+			"value": "697b3b34ad5a1463de967653",
+			"type": "string",
+			"description": "Chat session ID for testing. Created by 'Create New Chat Session' request."
 		}
 	],
 	"item": [
@@ -531,56 +537,98 @@
 			"name": "Chat - Backend Proxy",
 			"item": [
 				{
+					"name": "Create New Chat Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.data._id) {",
+									"    pm.collectionVariables.set('chatSessionId', jsonData.data._id);",
+									"    console.log('Chat Session ID saved: ' + jsonData.data._id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-user-id",
+								"value": "student-user-001"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"My New Chat Session\"\n}"
+						},
+						"url": {
+							"raw": "{{backend_url}}/api/chat/session",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "chat", "session"]
+						},
+						"description": "Create a new chat session. Session ID will be saved to collection variables."
+					},
+					"response": []
+				},
+				{
 					"name": "Send Chat Message",
 					"request": {
 						"method": "POST",
 						"header": [
 							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							},
-							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "x-user-id",
+								"value": "student-user-001"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"message\": \"Explain binary search trees and their time complexity\",\n    \"sessionId\": \"test-session-001\",\n    \"context\": []\n}"
+							"raw": "{\n    \"sessionId\": \"{{chatSessionId}}\",\n    \"message\": \"Explain binary search trees and their time complexity\"\n}"
 						},
 						"url": {
-							"raw": "{{backend_url}}/api/chat",
+							"raw": "{{backend_url}}/api/chat/message",
 							"host": ["{{backend_url}}"],
-							"path": ["api", "chat"]
+							"path": ["api", "chat", "message"]
 						},
-						"description": "Send a chat message through the backend proxy to the AI backend."
+						"description": "Send a chat message to get AI response. Messages are stored in MongoDB."
 					},
 					"response": []
 				},
 				{
-					"name": "Search Request via Chat",
+					"name": "Search via Chat (Database)",
 					"request": {
 						"method": "POST",
 						"header": [
 							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							},
-							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "x-user-id",
+								"value": "student-user-001"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"message\": \"Search for materials about sorting algorithms\",\n    \"sessionId\": \"test-session-001\",\n    \"context\": []\n}"
+							"raw": "{\n    \"sessionId\": \"{{chatSessionId}}\",\n    \"message\": \"Search for materials about sorting algorithms\"\n}"
 						},
 						"url": {
-							"raw": "{{backend_url}}/api/chat",
+							"raw": "{{backend_url}}/api/chat/message",
 							"host": ["{{backend_url}}"],
-							"path": ["api", "chat"]
+							"path": ["api", "chat", "message"]
 						},
-						"description": "Send a search query through the chat interface."
+						"description": "Search course materials via chat. Searches MongoDB content database."
 					},
 					"response": []
 				},
@@ -590,24 +638,108 @@
 						"method": "POST",
 						"header": [
 							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							},
-							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "x-user-id",
+								"value": "student-user-001"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"message\": \"Generate notes on dynamic programming with examples\",\n    \"sessionId\": \"test-session-001\",\n    \"context\": []\n}"
+							"raw": "{\n    \"sessionId\": \"{{chatSessionId}}\",\n    \"message\": \"Generate notes on dynamic programming with examples\"\n}"
 						},
 						"url": {
-							"raw": "{{backend_url}}/api/chat",
+							"raw": "{{backend_url}}/api/chat/message",
 							"host": ["{{backend_url}}"],
-							"path": ["api", "chat"]
+							"path": ["api", "chat", "message"]
 						},
 						"description": "Request content generation through the chat interface."
+					},
+					"response": []
+				},
+				{
+					"name": "Ask Follow-up Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "x-user-id",
+								"value": "student-user-001"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sessionId\": \"{{chatSessionId}}\",\n    \"message\": \"Can you explain that in more detail?\"\n}"
+						},
+						"url": {
+							"raw": "{{backend_url}}/api/chat/message",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "chat", "message"]
+						},
+						"description": "Ask a follow-up question. Chat maintains conversational context."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chat History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "student-user-001"
+							}
+						],
+						"url": {
+							"raw": "{{backend_url}}/api/chat/history",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "chat", "history"]
+						},
+						"description": "Get all chat sessions for the current user from MongoDB."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chat Session by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "student-user-001"
+							}
+						],
+						"url": {
+							"raw": "{{backend_url}}/api/chat/session/{{chatSessionId}}",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "chat", "session", "{{chatSessionId}}"]
+						},
+						"description": "Get a specific chat session with all messages from MongoDB."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Chat Session",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-user-id",
+								"value": "student-user-001"
+							}
+						],
+						"url": {
+							"raw": "{{backend_url}}/api/chat/session/{{chatSessionId}}",
+							"host": ["{{backend_url}}"],
+							"path": ["api", "chat", "session", "{{chatSessionId}}"]
+						},
+						"description": "Delete a chat session and all its messages from MongoDB."
 					},
 					"response": []
 				}
