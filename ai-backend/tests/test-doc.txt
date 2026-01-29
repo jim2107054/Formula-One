@@ -1,0 +1,20 @@
+Part 3: AI-Generated Learning Materials
+The platform should generate new learning materials based on existing course content. You can
+use the system you generated in part 2 as a tool for internal context and for external context a
+MCP server wrapper over wikipedia or other knowledgebase.
+Input
+A topic, concept, or natural language prompt from the user
+Output
+Theory
+- Generated learning materials such as:
+- Reading notes
+- Slides
+- PDFs
+Content must be coherent, structured, and grounded in uploaded materials
+Bonus: Ability to include relevant images, diagrams, or visual aids
+Lab
+- Generated code-centric learning materials
+Code must be:
+- Syntactically correct
+- Relevant to the given topic
+- Supported programming languages should be clearly specified
