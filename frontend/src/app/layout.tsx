@@ -10,8 +10,8 @@ const inter = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "IFEN Dashboard",
-  description: "Dashboard Development for IFEN",
+  title: "EduAI Learning Platform",
+  description: "AI-powered supplementary learning platform for university courses",
 };
 
 export default function RootLayout({

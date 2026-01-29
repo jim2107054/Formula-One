@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaFlask,
   FaPython,
@@ -8,7 +8,6 @@ import {
   FaJs,
   FaDownload,
   FaSearch,
-  FaFilter,
   FaCode,
   FaPlay,
   FaCopy,
@@ -16,105 +15,18 @@ import {
   FaCalendar,
   FaFolder,
   FaEye,
+  FaSpinner,
 } from "react-icons/fa";
 import { SiTypescript, SiCplusplus } from "react-icons/si";
+import contentService, { LabMaterial } from "@/services/content.service";
 
-interface LabMaterial {
-  id: string;
-  title: string;
-  description: string;
-  language: "python" | "java" | "javascript" | "typescript" | "cpp";
-  topic: string;
-  week: number;
-  tags: string[];
-  codePreview: string;
-  difficulty: "beginner" | "intermediate" | "advanced";
-  exercises: number;
-  uploadedAt: string;
+interface LabMaterialDisplay extends LabMaterial {
+  tags?: string[];
+  codePreview?: string;
+  exercises?: number;
 }
 
-const dummyLabMaterials: LabMaterial[] = [
-  {
-    id: "1",
-    title: "Python Data Structures",
-    description: "Implementation of common data structures: linked lists, stacks, queues, and trees in Python.",
-    language: "python",
-    topic: "Data Structures",
-    week: 1,
-    tags: ["Python", "Data Structures", "Algorithms"],
-    codePreview: `class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nclass LinkedList:\n    def __init__(self):\n        self.head = None`,
-    difficulty: "beginner",
-    exercises: 5,
-    uploadedAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    title: "Neural Network from Scratch",
-    description: "Build a simple neural network using only NumPy - forward and backward propagation.",
-    language: "python",
-    topic: "Deep Learning",
-    week: 3,
-    tags: ["Neural Networks", "NumPy", "Backpropagation"],
-    codePreview: `import numpy as np\n\ndef sigmoid(x):\n    return 1 / (1 + np.exp(-x))\n\ndef forward(X, W1, W2):\n    Z1 = np.dot(X, W1)\n    A1 = sigmoid(Z1)`,
-    difficulty: "intermediate",
-    exercises: 3,
-    uploadedAt: "2024-01-29",
-  },
-  {
-    id: "3",
-    title: "REST API with Express.js",
-    description: "Complete REST API implementation with CRUD operations, validation, and error handling.",
-    language: "javascript",
-    topic: "Web Development",
-    week: 4,
-    tags: ["Node.js", "Express", "REST API"],
-    codePreview: `const express = require('express');\nconst app = express();\n\napp.get('/api/users', async (req, res) => {\n    const users = await User.find();\n    res.json(users);\n});`,
-    difficulty: "intermediate",
-    exercises: 4,
-    uploadedAt: "2024-02-05",
-  },
-  {
-    id: "4",
-    title: "TypeScript Design Patterns",
-    description: "Implementation of common design patterns: Singleton, Factory, Observer, and Strategy.",
-    language: "typescript",
-    topic: "Software Engineering",
-    week: 5,
-    tags: ["TypeScript", "Design Patterns", "OOP"],
-    codePreview: `interface Observer {\n    update(data: any): void;\n}\n\nclass Subject {\n    private observers: Observer[] = [];\n    \n    subscribe(observer: Observer) {\n        this.observers.push(observer);\n    }`,
-    difficulty: "advanced",
-    exercises: 6,
-    uploadedAt: "2024-02-12",
-  },
-  {
-    id: "5",
-    title: "Machine Learning Algorithms",
-    description: "Implementations of Linear Regression, Logistic Regression, and K-Nearest Neighbors.",
-    language: "python",
-    topic: "Machine Learning",
-    week: 2,
-    tags: ["ML", "Scikit-learn", "Algorithms"],
-    codePreview: `from sklearn.linear_model import LinearRegression\nfrom sklearn.model_selection import train_test_split\n\nX_train, X_test, y_train, y_test = train_test_split(X, y)\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)`,
-    difficulty: "beginner",
-    exercises: 4,
-    uploadedAt: "2024-01-22",
-  },
-  {
-    id: "6",
-    title: "Concurrent Programming in Java",
-    description: "Multi-threading, synchronization, and parallel processing with Java's concurrency API.",
-    language: "java",
-    topic: "Systems Programming",
-    week: 6,
-    tags: ["Java", "Concurrency", "Threads"],
-    codePreview: `public class Worker implements Runnable {\n    @Override\n    public void run() {\n        System.out.println("Running");\n    }\n}\n\nExecutorService executor = Executors.newFixedThreadPool(4);`,
-    difficulty: "advanced",
-    exercises: 5,
-    uploadedAt: "2024-02-19",
-  },
-];
-
-const languageIcons = {
+const languageIcons: Record<string, React.ComponentType<{className?: string}>> = {
   python: FaPython,
   java: FaJava,
   javascript: FaJs,
@@ -122,7 +34,7 @@ const languageIcons = {
   cpp: SiCplusplus,
 };
 
-const languageColors = {
+const languageColors: Record<string, string> = {
   python: "bg-yellow-100 text-yellow-700 border-yellow-200",
   java: "bg-red-100 text-red-700 border-red-200",
   javascript: "bg-amber-100 text-amber-700 border-amber-200",
@@ -130,29 +42,53 @@ const languageColors = {
   cpp: "bg-purple-100 text-purple-700 border-purple-200",
 };
 
-const difficultyColors = {
+const difficultyColors: Record<string, string> = {
   beginner: "bg-green-100 text-green-700",
   intermediate: "bg-yellow-100 text-yellow-700",
   advanced: "bg-red-100 text-red-700",
 };
 
 export default function LabMaterialsPage() {
-  const [materials] = useState<LabMaterial[]>(dummyLabMaterials);
+  const [materials, setMaterials] = useState<LabMaterialDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterLanguage, setFilterLanguage] = useState<string>("all");
   const [filterDifficulty, setFilterDifficulty] = useState<string>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const topics = [...new Set(dummyLabMaterials.map((m) => m.topic))];
+  // Fetch materials from backend API
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        setLoading(true);
+        const data = await contentService.getLabMaterials({
+          language: filterLanguage !== "all" ? filterLanguage : undefined,
+          difficulty: filterDifficulty !== "all" ? filterDifficulty : undefined,
+          search: searchQuery || undefined,
+        });
+        // Add extra fields for display
+        const materialsWithExtras = data.map(m => ({
+          ...m,
+          codePreview: m.code || "",
+          tags: [],
+          exercises: 3,
+        }));
+        setMaterials(materialsWithExtras);
+      } catch (error) {
+        console.error("Failed to fetch lab materials:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMaterials();
+  }, [filterLanguage, filterDifficulty, searchQuery]);
 
   const filteredMaterials = materials.filter((material) => {
     const matchesSearch =
       material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      material.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      material.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesLanguage = filterLanguage === "all" || material.language === filterLanguage;
-    const matchesDifficulty = filterDifficulty === "all" || material.difficulty === filterDifficulty;
-    return matchesSearch && matchesLanguage && matchesDifficulty;
+      material.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
 
   const handleCopyCode = (id: string, code: string) => {
@@ -232,6 +168,17 @@ export default function LabMaterialsPage() {
       </div>
 
       {/* Materials List */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <FaSpinner className="animate-spin text-4xl text-[var(--Primary)]" />
+        </div>
+      ) : materials.length === 0 ? (
+        <div className="text-center py-12">
+          <FaFlask className="text-gray-300 text-6xl mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-600">No Lab Materials Yet</h3>
+          <p className="text-gray-500 mt-2">Lab materials will appear here once uploaded by administrators.</p>
+        </div>
+      ) : (
       <div className="space-y-4">
         {filteredMaterials.map((material) => {
           const LanguageIcon = languageIcons[material.language];
@@ -290,6 +237,7 @@ export default function LabMaterialsPage() {
                     </div>
 
                     {/* Tags */}
+                    {material.tags && material.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {material.tags.map((tag, index) => (
                         <span
@@ -300,15 +248,17 @@ export default function LabMaterialsPage() {
                         </span>
                       ))}
                     </div>
+                    )}
                   </div>
 
                   {/* Code Preview */}
+                  {material.codePreview && (
                   <div className="lg:w-96">
                     <div className="bg-gray-900 rounded-lg overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
                         <span className="text-gray-400 text-xs">Preview</span>
                         <button
-                          onClick={() => handleCopyCode(material.id, material.codePreview)}
+                          onClick={() => handleCopyCode(material.id, material.codePreview!)}
                           className="flex items-center gap-1 text-gray-400 hover:text-white text-xs transition-colors"
                         >
                           {copiedId === material.id ? (
@@ -329,6 +279,7 @@ export default function LabMaterialsPage() {
                       </pre>
                     </div>
                   </div>
+                  )}
                 </div>
 
                 {/* Actions */}
@@ -351,9 +302,10 @@ export default function LabMaterialsPage() {
           );
         })}
       </div>
+      )}
 
-      {/* Empty State */}
-      {filteredMaterials.length === 0 && (
+      {/* Empty State for filtered results */}
+      {!loading && materials.length > 0 && filteredMaterials.length === 0 && (
         <div className="text-center py-12">
           <FaFlask className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-600 mb-2">No lab materials found</h3>
