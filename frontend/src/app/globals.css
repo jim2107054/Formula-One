@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   TAILWIND THEME CONFIGURATION (v4)
+   ========================================================================== */
+@theme {
+  /* Color Palette */
+  --color-primary: var(--Primary);
+  --color-primary-light: var(--Primary-light);
+
+  --color-primary-dark: var(--Primary-dark);
+  --color-accent: var(--Accent-default);
+  --color-accent-hover: var(--Accent-default-hover);
+  --color-accent-dark-1: var(--Accent-dark-1);
+  --color-accent-dark-2: var(--Accent-dark-2);
+  --color-accent-light: var(--Accent-light);
+  --color-orange: var(--Orange-default);
+  --color-orange-light: var(--Orange-light);
+  --color-pressed-bg: var(--pressed-bg);
+  --color-light-green: var(--Light-green);
+  --color-yellow: var(--Yellow-default);
+
+  /* Shadows */
+  --shadow-button: var(--shadow-button);
+}
+
+/* ==========================================================================
+   CSS CUSTOM PROPERTIES (Design Tokens)
+   ========================================================================== */
+:root {
+  /* Base Colors */
+  --background: #ffffff;
+  --foreground: #171717;
+
+  /* Primary Color Palette */
+  --Primary: #b8bebe;
+  --Primary-light: #f2f6f6;
+  --Primary-dark: #777d7d;
+  --Primary-dark-2: #797a7b; /*neutral*/
+
+  /* Accent Color Palette */
+  --Accent-default: #009ba7;
+  --Accent-default-hover: #03929c; /* hover state */
+  --Accent-dark-1: #007d88; /* active state */
+  --Accent-dark-2: #05505c;
+  --Accent-light: #afecef;
+  --Accent-light-2: #d3e7e7;
+
+  /* Additional Colors */
+  --Orange-light: #fdf9f7;
+  --Orange-default: #ff7a00;
+  --pressed-bg: #d3e7e7;
+  --Light-green: #63c81d;
+  --Yellow-default: #ffbe00;
+
+  /* Shadows */
+  --shadow-button: 0px 1px 4px rgba(0, 0, 0, 0.24);
+
+  /* text color  */
+  --text-500: #272d2d;
+}
+
+/* ==========================================================================
+   DARK MODE OVERRIDE
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* ==========================================================================
+   UTILITY CLASSES
+   ========================================================================== */
+/* Typography Utilities */
+.primary-title {
+  color: var(--Primary, #b8bebe);
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.tight-text-1 {
+  letter-spacing: -4%;
+}
+
+.tight-text-2 {
+  letter-spacing: -2%;
+}
+
+/* Scrollbar Hide Utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
