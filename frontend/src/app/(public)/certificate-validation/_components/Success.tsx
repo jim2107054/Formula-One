@@ -23,7 +23,7 @@ export default function Success({
         <span className="text-[var(--Accent-default)]">[{serialNumber}]</span>
         <span>
           {" "}
-          is authentic and officially verified by IFEN.
+          is authentic and officially verified by EduAI.
           <br />
           The holder has successfully completed the course and fulfilled all
           academic requirements with excellence.

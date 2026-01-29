@@ -4,10 +4,8 @@ import { useState } from "react";
 import {
   FaRobot,
   FaBook,
-  FaFlask,
   FaFileAlt,
   FaCode,
-  FaArrowRight,
   FaCopy,
   FaDownload,
   FaCheckCircle,
@@ -19,13 +17,6 @@ import { BiSolidSlideshow } from "react-icons/bi";
 import aiService from "@/services/ai.service";
 
 type GenerationType = "notes" | "slides" | "code" | "summary" | "explanation";
-
-interface GeneratedContent {
-  type: GenerationType;
-  title: string;
-  content: string;
-  createdAt: string;
-}
 
 const generationTypes = [
   {
@@ -202,7 +193,7 @@ export default function GeneratePage() {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
-  const [sources, setSources] = useState<string[]>([]);
+  const [, setSources] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
 
   const selectedTypeInfo = generationTypes.find((t) => t.id === selectedType);

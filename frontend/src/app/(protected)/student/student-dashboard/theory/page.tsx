@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   FaBook,
   FaFilePdf,
@@ -9,106 +10,17 @@ import {
   FaEye,
   FaSearch,
   FaFilter,
-  FaTags,
   FaCalendar,
   FaFolder,
+  FaSpinner,
 } from "react-icons/fa";
 import { BiSolidSlideshow } from "react-icons/bi";
+import contentService, { TheoryMaterial } from "@/services/content.service";
 
-interface TheoryMaterial {
-  id: string;
-  title: string;
-  description: string;
-  type: "slide" | "pdf" | "notes" | "reference";
-  topic: string;
-  week: number;
-  tags: string[];
-  fileUrl: string;
-  thumbnailUrl: string;
-  uploadedAt: string;
-  views: number;
+interface TheoryMaterialDisplay extends TheoryMaterial {
+  tags?: string[];
+  thumbnailUrl?: string;
 }
-
-const dummyMaterials: TheoryMaterial[] = [
-  {
-    id: "1",
-    title: "Introduction to Machine Learning",
-    description: "Overview of ML concepts, types of learning, and basic algorithms.",
-    type: "slide",
-    topic: "Machine Learning Basics",
-    week: 1,
-    tags: ["ML", "Introduction", "Algorithms"],
-    fileUrl: "#",
-    thumbnailUrl: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop",
-    uploadedAt: "2024-01-15",
-    views: 245,
-  },
-  {
-    id: "2",
-    title: "Neural Networks Fundamentals",
-    description: "Deep dive into neural network architectures and backpropagation.",
-    type: "pdf",
-    topic: "Deep Learning",
-    week: 2,
-    tags: ["Neural Networks", "Deep Learning", "Backpropagation"],
-    fileUrl: "#",
-    thumbnailUrl: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=400&h=300&fit=crop",
-    uploadedAt: "2024-01-22",
-    views: 189,
-  },
-  {
-    id: "3",
-    title: "Data Preprocessing Techniques",
-    description: "Comprehensive notes on data cleaning, normalization, and feature engineering.",
-    type: "notes",
-    topic: "Data Engineering",
-    week: 3,
-    tags: ["Data", "Preprocessing", "Feature Engineering"],
-    fileUrl: "#",
-    thumbnailUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop",
-    uploadedAt: "2024-01-29",
-    views: 312,
-  },
-  {
-    id: "4",
-    title: "Supervised Learning Algorithms",
-    description: "Detailed explanation of regression, classification, and decision trees.",
-    type: "slide",
-    topic: "Machine Learning Basics",
-    week: 4,
-    tags: ["Supervised Learning", "Regression", "Classification"],
-    fileUrl: "#",
-    thumbnailUrl: "https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=400&h=300&fit=crop",
-    uploadedAt: "2024-02-05",
-    views: 276,
-  },
-  {
-    id: "5",
-    title: "Convolutional Neural Networks",
-    description: "Understanding CNNs for image recognition and computer vision tasks.",
-    type: "pdf",
-    topic: "Deep Learning",
-    week: 5,
-    tags: ["CNN", "Computer Vision", "Image Recognition"],
-    fileUrl: "#",
-    thumbnailUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=300&fit=crop",
-    uploadedAt: "2024-02-12",
-    views: 198,
-  },
-  {
-    id: "6",
-    title: "Natural Language Processing Basics",
-    description: "Introduction to NLP, tokenization, and text processing techniques.",
-    type: "reference",
-    topic: "NLP",
-    week: 6,
-    tags: ["NLP", "Text Processing", "Tokenization"],
-    fileUrl: "#",
-    thumbnailUrl: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&h=300&fit=crop",
-    uploadedAt: "2024-02-19",
-    views: 167,
-  },
-];
 
 const typeIcons = {
   slide: BiSolidSlideshow,
@@ -124,23 +36,55 @@ const typeColors = {
   reference: "bg-purple-100 text-purple-600",
 };
 
+// Default thumbnails for different content types
+const defaultThumbnails = {
+  slide: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
+  pdf: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&h=300&fit=crop",
+  notes: "https://images.unsplash.com/photo-1517842645767-c639042777db?w=400&h=300&fit=crop",
+  reference: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
+};
+
 export default function TheoryMaterialsPage() {
-  const [materials, setMaterials] = useState<TheoryMaterial[]>(dummyMaterials);
+  const [materials, setMaterials] = useState<TheoryMaterialDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterTopic, setFilterTopic] = useState<string>("all");
-  const [selectedMaterial, setSelectedMaterial] = useState<TheoryMaterial | null>(null);
 
-  const topics = [...new Set(dummyMaterials.map((m) => m.topic))];
+  // Fetch materials from backend API
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        setLoading(true);
+        const data = await contentService.getTheoryMaterials({
+          type: filterType !== "all" ? filterType : undefined,
+          topic: filterTopic !== "all" ? filterTopic : undefined,
+          search: searchQuery || undefined,
+        });
+        // Add thumbnail URLs if not present
+        const materialsWithThumbnails = data.map(m => ({
+          ...m,
+          thumbnailUrl: m.thumbnail || defaultThumbnails[m.type as keyof typeof defaultThumbnails] || defaultThumbnails.notes,
+          tags: [],
+        }));
+        setMaterials(materialsWithThumbnails);
+      } catch (error) {
+        console.error("Failed to fetch theory materials:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMaterials();
+  }, [filterType, filterTopic, searchQuery]);
+
+  const topics = [...new Set(materials.map((m) => m.topic))];
 
   const filteredMaterials = materials.filter((material) => {
     const matchesSearch =
       material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      material.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      material.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesType = filterType === "all" || material.type === filterType;
-    const matchesTopic = filterTopic === "all" || material.topic === filterTopic;
-    return matchesSearch && matchesType && matchesTopic;
+      material.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
 
   return (
@@ -214,86 +158,88 @@ export default function TheoryMaterialsPage() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <FaSpinner className="w-8 h-8 text-[var(--Primary)] animate-spin" />
+        </div>
+      )}
+
       {/* Materials Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredMaterials.map((material) => {
-          const TypeIcon = typeIcons[material.type];
-          return (
-            <div
-              key={material.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group"
-            >
-              {/* Thumbnail */}
-              <div className="relative h-40 overflow-hidden">
-                <img
-                  src={material.thumbnailUrl}
-                  alt={material.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute top-3 left-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      typeColors[material.type]
-                    }`}
-                  >
-                    <TypeIcon className="inline w-3 h-3 mr-1" />
-                    {material.type.charAt(0).toUpperCase() + material.type.slice(1)}
-                  </span>
-                </div>
-                <div className="absolute top-3 right-3 flex gap-2">
-                  <button className="p-2 bg-white/90 rounded-lg hover:bg-white transition-colors">
-                    <FaEye className="w-4 h-4 text-gray-600" />
-                  </button>
-                  <button className="p-2 bg-white/90 rounded-lg hover:bg-white transition-colors">
-                    <FaDownload className="w-4 h-4 text-gray-600" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-4">
-                <h3 className="font-semibold text-lg mb-2 line-clamp-1 group-hover:text-[var(--Primary)] transition-colors">
-                  {material.title}
-                </h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  {material.description}
-                </p>
-
-                {/* Meta */}
-                <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
-                  <span className="flex items-center gap-1">
-                    <FaFolder className="w-3 h-3" />
-                    {material.topic}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <FaCalendar className="w-3 h-3" />
-                    Week {material.week}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <FaEye className="w-3 h-3" />
-                    {material.views}
-                  </span>
-                </div>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2">
-                  {material.tags.slice(0, 3).map((tag, index) => (
+      {!loading && (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredMaterials.map((material) => {
+            const TypeIcon = typeIcons[material.type as keyof typeof typeIcons];
+            return (
+              <div
+                key={material.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group"
+              >
+                {/* Thumbnail */}
+                <div className="relative h-40 overflow-hidden">
+                  <Image
+                    src={material.thumbnailUrl || defaultThumbnails.notes}
+                    alt={material.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    unoptimized
+                  />
+                  <div className="absolute top-3 left-3">
                     <span
-                      key={index}
-                      className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        typeColors[material.type as keyof typeof typeColors] || "bg-gray-100 text-gray-600"
+                      }`}
                     >
-                      {tag}
+                      {TypeIcon && <TypeIcon className="inline w-3 h-3 mr-1" />}
+                      {material.type.charAt(0).toUpperCase() + material.type.slice(1)}
                     </span>
-                  ))}
+                  </div>
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <button className="p-2 bg-white/90 rounded-lg hover:bg-white transition-colors">
+                      <FaEye className="w-4 h-4 text-gray-600" />
+                    </button>
+                    <button 
+                      className="p-2 bg-white/90 rounded-lg hover:bg-white transition-colors"
+                      onClick={() => material.fileUrl && window.open(material.fileUrl, '_blank')}
+                    >
+                      <FaDownload className="w-4 h-4 text-gray-600" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg mb-2 line-clamp-1 group-hover:text-[var(--Primary)] transition-colors">
+                    {material.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {material.description}
+                  </p>
+
+                  {/* Meta */}
+                  <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                    <span className="flex items-center gap-1">
+                      <FaFolder className="w-3 h-3" />
+                      {material.topic}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <FaCalendar className="w-3 h-3" />
+                      Week {material.week}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <FaEye className="w-3 h-3" />
+                      {material.views || 0}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Empty State */}
-      {filteredMaterials.length === 0 && (
+      {!loading && filteredMaterials.length === 0 && (
         <div className="text-center py-12">
           <FaBook className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-600 mb-2">No materials found</h3>

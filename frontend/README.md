@@ -1,4 +1,4 @@
-# IFEN Dashboard
+# EduAI Learning Platform
 
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
@@ -7,7 +7,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC)](https://tailwindcss.com/)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red)](#license)
 
-A modern web dashboard for IFEN built with Next.js 15, React 19, and Tailwind CSS 4. Provides tools for neurofeedback training management, including module tracking, Zoom meeting integration, and user management.
+EduAI is an AI-powered supplementary learning platform built with Next.js 15, React 19, and Tailwind CSS 4. It enhances university courses by organizing content, enabling intelligent retrieval, generating validated learning materials, and providing a conversational interface for seamless interaction.
 
 ## Table of Contents
 
