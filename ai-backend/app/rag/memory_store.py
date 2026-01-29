@@ -9,9 +9,18 @@ Uses Pinecone's built-in inference for embeddings.
 import os
 import uuid
 from typing import List
+from dataclasses import dataclass, field
 from fastapi import UploadFile
 from pinecone import Pinecone
 from dotenv import load_dotenv
+
+
+@dataclass
+class Document:
+    """Simple document class for search results."""
+    page_content: str
+    metadata: dict = field(default_factory=dict)
+
 
 # Load environment variables
 load_dotenv()
@@ -148,21 +157,21 @@ class MemoryStore:
             "chunks_added": len(chunks)
         }
 
-    def search_context(self, query: str, n_results: int = 3) -> str:
+    def search_documents(self, query: str, n_results: int = 5) -> List[Document]:
         """
-        Search the memory store for relevant context.
+        Search for relevant documents in the memory store.
 
         Args:
             query: The search query.
             n_results: Number of results to return.
 
         Returns:
-            str: Concatenated relevant context.
+            List[Document]: List of matching Document objects with page_content and metadata.
         """
         # Get index stats to check if empty
         stats = self.index.describe_index_stats()
         if stats.total_vector_count == 0:
-            return ""
+            return []
 
         # Generate query embedding using Pinecone inference
         query_embedding = self._embed_query(query)
@@ -174,24 +183,45 @@ class MemoryStore:
             include_metadata=True
         )
 
-        # Extract and join documents from metadata
+        # Extract documents from metadata
         documents = []
         for match in results.get("matches", []):
             metadata = match.get("metadata", {})
             text = metadata.get("text", "")
             if text:
-                documents.append(text)
                 # Track source
                 source = metadata.get("source")
                 if source:
                     self._sources.add(source)
 
+                # Create Document object
+                doc = Document(
+                    page_content=text,
+                    metadata={
+                        "source": source or "unknown",
+                        "score": match.get("score", 0.0)
+                    }
+                )
+                documents.append(doc)
+
+        return documents
+
+    def search_context(self, query: str, n_results: int = 5) -> str:
+        """
+        Search for relevant context in the memory store.
+        DEPRECATED: Use search_documents() instead.
+
+        Args:
+            query: The search query.
+            n_results: Number of results to return.
+
+        Returns:
+            str: Concatenated relevant context.
+        """
+        documents = self.search_documents(query, n_results)
         if not documents:
             return ""
-
-        # Join with separators
-        context = "\n\n---\n\n".join(documents)
-        return context
+        return "\n\n---\n\n".join(doc.page_content for doc in documents)
 
     def get_all_sources(self) -> List[str]:
         """Get all unique source filenames in the store."""

@@ -69,6 +69,8 @@ class AgentResponse(BaseModel):
     response: dict = Field(..., description="Generated response")
     sources_used: int = Field(
         default=0, description="Number of context sources used")
+    sources: list = Field(
+        default=[], description="List of source document names used")
 
 
 class UploadResponse(BaseModel):
@@ -144,10 +146,18 @@ async def smart_ask(request: AgentQuery):
         # Step 1: Classify the intent
         intent = await intent_router.classify_request(request.query)
 
-        # Step 2: Get relevant context from memory
-        context = memory.search_context(
+        # Step 2: Get relevant documents from memory
+        docs = memory.search_documents(
             intent.get("topic", request.query), n_results=5)
-        sources_count = len(context.split("---")) if context else 0
+
+        # Extract context text by joining document contents
+        context = "\n\n---\n\n".join(
+            doc.page_content for doc in docs) if docs else ""
+        sources_count = len(docs)
+
+        # Extract unique sources from document metadata
+        sources = list(set(doc.metadata.get("source", "unknown")
+                       for doc in docs))
 
         # Step 3: Route based on intent type
         intent_type = intent.get("type", "chat")
@@ -200,7 +210,8 @@ async def smart_ask(request: AgentQuery):
         return AgentResponse(
             intent=intent,
             response=response,
-            sources_used=sources_count
+            sources_used=sources_count,
+            sources=sources
         )
 
     except Exception as e:
