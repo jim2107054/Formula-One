@@ -1,5 +1,56 @@
 # AI-Powered Supplementary Learning Platform
 
+## 🚀 How to Run
+
+### Prerequisites
+
+- Node.js (v18+)
+- Python (v3.9+)
+- pip
+
+### Step-by-Step Launch
+
+1. **AI Backend (Terminal 1)**
+
+   ```bash
+   cd ai-backend
+   pip install -r requirements.txt
+   python run.py
+   ```
+
+   _Runs on http://localhost:8001_
+
+2. **Backend (Terminal 2)**
+
+   ```bash
+   cd backend
+   npm install
+   npm run dev
+   ```
+
+   _Runs on http://localhost:3000_
+
+3. **Frontend (Terminal 3)**
+
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+   _Runs on http://localhost:3000 (Next.js automatically chooses port 3001 if 3000 is taken, or you should set PORT=3001)_
+
+   **Note:** Since Backend runs on 3000, Next.js typically prompts to run on 3001. That is expected.
+   To force a port:
+
+   ```bash
+   npm run dev -- -p 3001
+   ```
+
+   _Access the app at http://localhost:3001_
+
+---
+
 This project is an AI-powered supplementary learning platform for university courses.
 It organizes fragmented course materials, enables intelligent retrieval,
 generates grounded learning content, and provides a conversational interface for students.
@@ -101,95 +152,98 @@ No service should assume internal logic of another service.
 See service-level README files for setup instructions.
 
 # Github monorepo stcuture
-Subject to change during project development if necessary. Ask before updating. 
+
+Subject to change during project development if necessary. Ask before updating.
 
 ai-supplementary-learning-platform/
 │
-├── frontend/                         # Person 1 (Frontend)
-│   ├── app/                          # Next.js App Router
-│   ├── components/
-│   ├── features/
-│   │   ├── auth/
-│   │   ├── dashboard/
-│   │   ├── chat/
-│   │   ├── cms/
-│   │   └── community/               # Phase 2
-│   ├── services/                    # API client, auth helpers
-│   ├── styles/
-│   ├── tests/
-│   ├── package.json
-│   └── README.md
+├── frontend/ # Person 1 (Frontend)
+│ ├── app/ # Next.js App Router
+│ ├── components/
+│ ├── features/
+│ │ ├── auth/
+│ │ ├── dashboard/
+│ │ ├── chat/
+│ │ ├── cms/
+│ │ └── community/ # Phase 2
+│ ├── services/ # API client, auth helpers
+│ ├── styles/
+│ ├── tests/
+│ ├── package.json
+│ └── README.md
 │
-├── backend/                          # Person 2 (Node.js Backend)
-│   ├── src/
-│   │   ├── api/                      # Express/Nest routes
-│   │   │   ├── auth.routes.ts
-│   │   │   ├── cms.routes.ts
-│   │   │   ├── chat.routes.ts
-│   │   │   └── health.routes.ts
-│   │   ├── controllers/
-│   │   ├── services/
-│   │   │   ├── auth.service.ts
-│   │   │   ├── cms.service.ts
-│   │   │   └── chat-orchestrator.service.ts
-│   │   ├── models/                  # ORM models
-│   │   ├── middlewares/
-│   │   ├── config/
-│   │   └── app.ts
-│   ├── tests/
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── README.md
+├── backend/ # Person 2 (Node.js Backend)
+│ ├── src/
+│ │ ├── api/ # Express/Nest routes
+│ │ │ ├── auth.routes.ts
+│ │ │ ├── cms.routes.ts
+│ │ │ ├── chat.routes.ts
+│ │ │ └── health.routes.ts
+│ │ ├── controllers/
+│ │ ├── services/
+│ │ │ ├── auth.service.ts
+│ │ │ ├── cms.service.ts
+│ │ │ └── chat-orchestrator.service.ts
+│ │ ├── models/ # ORM models
+│ │ ├── middlewares/
+│ │ ├── config/
+│ │ └── app.ts
+│ ├── tests/
+│ ├── package.json
+│ ├── tsconfig.json
+│ └── README.md
 │
-├── ai-backend/                       # Person 3 (AI / Python)
-│   ├── app/
-│   │   ├── api/                      # FastAPI routers
-│   │   ├── rag/
-│   │   │   ├── ingestion/
-│   │   │   ├── chunking/
-│   │   │   ├── embeddings/
-│   │   │   ├── retriever/
-│   │   │   └── vector_store/
-│   │   ├── generation/
-│   │   │   ├── prompts/
-│   │   │   ├── theory_generator.py
-│   │   │   ├── lab_code_generator.py
-│   │   │   └── tool_controller.py
-│   │   ├── validation/
-│   │   │   ├── code_validator.py
-│   │   │   ├── grounding_checker.py
-│   │   │   └── rubric_evaluator.py
-│   │   └── main.py
-│   ├── tests/
-│   ├── requirements.txt
-│   └── README.md
+├── ai-backend/ # Person 3 (AI / Python)
+│ ├── app/
+│ │ ├── api/ # FastAPI routers
+│ │ ├── rag/
+│ │ │ ├── ingestion/
+│ │ │ ├── chunking/
+│ │ │ ├── embeddings/
+│ │ │ ├── retriever/
+│ │ │ └── vector_store/
+│ │ ├── generation/
+│ │ │ ├── prompts/
+│ │ │ ├── theory_generator.py
+│ │ │ ├── lab_code_generator.py
+│ │ │ └── tool_controller.py
+│ │ ├── validation/
+│ │ │ ├── code_validator.py
+│ │ │ ├── grounding_checker.py
+│ │ │ └── rubric_evaluator.py
+│ │ └── main.py
+│ ├── tests/
+│ ├── requirements.txt
+│ └── README.md
 │
-├── shared/                           # Cross-service contracts
-│   ├── schemas/                     # OpenAPI / JSON schema
-│   ├── constants/
-│   └── utils/
+├── shared/ # Cross-service contracts
+│ ├── schemas/ # OpenAPI / JSON schema
+│ ├── constants/
+│ └── utils/
 │
-├── docs/                             # Architecture & design
-│   ├── architecture-level-0.md
-│   ├── backend-architecture.md
-│   ├── ai-backend-architecture.md
-│   ├── frontend-architecture.md
-│   └── eraser-diagrams/
+├── docs/ # Architecture & design
+│ ├── architecture-level-0.md
+│ ├── backend-architecture.md
+│ ├── ai-backend-architecture.md
+│ ├── frontend-architecture.md
+│ └── eraser-diagrams/
 │
 ├── docker/
-│   ├── docker-compose.yml
-│   ├── frontend.Dockerfile
-│   ├── backend.Dockerfile
-│   └── ai-backend.Dockerfile
+│ ├── docker-compose.yml
+│ ├── frontend.Dockerfile
+│ ├── backend.Dockerfile
+│ └── ai-backend.Dockerfile
 │
 ├── .env.example
 ├── .gitignore
-└── README.md                         # MAIN README (below)
+└── README.md # MAIN README (below)
 
 # System Architectures
 
-eraser.io style code 
+eraser.io style code
+
 ## frontend-architecture
+
 ```
 title Frontend Architecture – Student-Centric Learning Platform
 direction top
@@ -285,7 +339,8 @@ Notification System <> API Client: Status & Updates
 
 ```
 
-## backend-architecture 
+## backend-architecture
+
 ```
 title Backend Architecture – AI-Powered Learning Platform
 direction top
@@ -347,6 +402,7 @@ API Gateway <> Frontend UI: Final Response
 ```
 
 ## ai-backend architecture
+
 ```
 title AI Backend Architecture – RAG + Generation System
 direction top

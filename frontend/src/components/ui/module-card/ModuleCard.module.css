@@ -1,0 +1,224 @@
+/* Base Container */
+.moduleCard {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Apply hover shadow to both cards when hovering over the container */
+.moduleCard:hover .leftCard {
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.06), 0px 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.moduleCard:hover .rightCard {
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.06), 0px 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+/* Change title and module label colors on hover */
+.moduleCard:hover .title {
+  color: var(--Accent-default);
+  transition: color 0.5s ease;
+}
+
+.moduleCard:hover .moduleLabelWrapper {
+  background-color: var(--Accent-default);
+  transition: background-color 0.5s ease;
+}
+
+/* Left Card - Main Content Card */
+.leftCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  border-radius: 8px;
+  padding: 27px 24px;
+  padding-right: 30px;
+  gap: 24px;
+  flex: 1;
+  transition: box-shadow 0.5s ease;
+  width: 100%;
+}
+
+/* Right Card - Countdown Card */
+.rightCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+  padding: 24px;
+  min-width: 8rem;
+  flex-shrink: 0;
+  transition: box-shadow 0.5s ease;
+}
+
+/* Header Section */
+.header {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+/* Module Label Badge */
+.moduleLabelWrapper {
+  background-color: var(--Accent-dark-2);
+  border-radius: 4px;
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.moduleLabel {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-align: center;
+  transition: color 0.5s ease;
+}
+
+/* Title */
+.title {
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: -0.48px;
+  line-height: 36px;
+  margin: 0;
+  max-width: 100%;
+  transition: color 0.5s ease;
+}
+
+/* Date Wrapper */
+.dateWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendarIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.dateText {
+  color: #777d7d;
+  font-size: 16px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* Countdown Section */
+.countdownCircle {
+  position: relative;
+  width: 6rem;
+  height: 6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Progress Ring */
+.progressRing {
+  position: absolute;
+  width: 6rem;
+  height: 6rem;
+  transform: rotate(-90deg);
+}
+
+.progressRing circle {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.progressBackground {
+  stroke: #f0f0f0;
+}
+
+.progressForeground {
+  stroke: var(--Accent-default);
+  stroke-dasharray: 251.2;
+  stroke-dashoffset: 175.84; /* 70% progress */
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.countdownText {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.daysNumber {
+  font-size: 32px;
+  font-weight: 700;
+  color: #000000;
+  line-height: 1;
+}
+
+.days {
+  font-size: 14px;
+  font-weight: 400;
+  color: #000000;
+  line-height: 1;
+}
+
+.remaining {
+  font-size: 10px;
+  font-weight: 400;
+  color: #666666;
+  line-height: 1;
+}
+
+/* Variant-Specific Styles */
+.default .moduleLabelWrapper {
+  background-color: var(--Accent-dark-2);
+}
+
+.variant-2 .moduleLabelWrapper {
+  background-color: var(--Accent-default);
+}
+
+.default .title {
+  color: #000000;
+}
+
+.variant-2 .title {
+  color: var(--Accent-default);
+}
+
+/* Apply variant shadow to both cards */
+.variant-2 .leftCard,
+.variant-2 .rightCard {
+  /* Even subtler variant shadow */
+  box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.03), 0px 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* Enhanced hover shadows for variant-2 */
+.variant-2:hover .leftCard,
+.variant-2:hover .rightCard {
+  box-shadow: 0px 3px 12px rgba(0, 0, 0, 0.08), 0px 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .moduleCard {
+    flex-direction: column;
+    align-items: center;
+  }
+  .rightCard {
+    display: none;
+  }
+
+  .title {
+    max-width: 100%;
+  }
+}

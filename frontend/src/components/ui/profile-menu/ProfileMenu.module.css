@@ -1,0 +1,244 @@
+/* Base wrapper (module class + kebab-case alias for parity) */
+.profileMenu,
+.profile-menu {
+  position: relative;
+}
+
+/* Avatar container */
+.avatarContainer,
+.avatar-container {
+  position: relative;
+  /* make the avatar container the positioning context and fit the avatar size */
+  display: inline-block;
+}
+
+/* Online Status Indicator (module + kebab-case) */
+.avatarOnline,
+.avatar-online {
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  height: 14px;
+  width: 14px;
+  position: absolute;
+  bottom: -0px;
+  right: -0px;
+}
+
+.avatarOnline.online,
+.avatar-online.online {
+  background-color: var(--success-500, #10b981);
+}
+
+.avatarOnline.away,
+.avatar-online.away {
+  background-color: var(--warning-500, #f59e0b);
+}
+
+.avatarOnline.busy,
+.avatar-online.busy {
+  background-color: var(--error-500, #ef4444);
+}
+
+/* Avatar Wrapper (Container for avatar image) */
+.avatarOnlineWrapper,
+.avatar-online-wrapper {
+  background-position: 50% 50%;
+  background-size: cover;
+  border-radius: 200px;
+  height: 40px;
+  position: relative;
+  width: 40px;
+}
+
+/* Dropdown Menu Styling */
+.dropdownMenu,
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: #ffffff;
+  border: 1px solid #f2f6f6;
+  border-radius: 8px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.05), 0px 9px 9px rgba(0, 0, 0, 0.08),
+    0px 20px 12px rgba(0, 0, 0, 0.05), 0px 35px 14px rgba(0, 0, 0, 0.03),
+    0px 55px 15px transparent;
+  display: flex;
+  flex-direction: column;
+  overflow: visible !important; /* Changed from hidden to visible */
+  width: 256px;
+  z-index: 1000;
+}
+
+/* Header of Dropdown List */
+.dropdownListHeader,
+.dropdown-list-header {
+  align-self: stretch;
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px;
+  width: 100%;
+}
+
+/* Avatar Label Group (Avatar + Text) */
+.avatarLabelGroup,
+.avatar-label-group {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  width: 206px;
+}
+
+/* Text and Supporting Info (Name & Email) */
+.textAndSupporting,
+.text-and-supporting {
+  display: flex;
+  flex-direction: column;
+  width: 155px;
+}
+
+/* Main Name Text */
+.text,
+.text-main {
+  color: #000000;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+/* Supporting Text (Email) */
+.supportingText,
+.supporting-text {
+  color: #777d7d;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+/* Divider Line */
+.divider {
+  background-color: #f2f6f6;
+  height: 1px;
+  width: 100%;
+  border: none;
+  margin: 0;
+}
+
+/* Dropdown List Base (UL) */
+.dropdownMenuBase,
+.dropdown-menu-base {
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow: visible !important; /* Ensure this is visible */
+}
+
+/* Dropdown List Item (LI) & Logout Item */
+.dropdownListItem,
+.logout,
+.dropdown-list-item {
+  position: relative;
+  overflow: visible !important; /* Ensure this is visible */
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  padding: 10px 16px;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdownListItem:hover,
+.logout:hover,
+.dropdown-list-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Icon Image */
+.img {
+  height: 16px;
+  width: 16px;
+}
+
+/* Text Wrapper (for menu items) */
+.textWrapper,
+.text-wrapper {
+  color: #777d7d;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+/* Avatar (the actual user avatar) */
+.avatar {
+  background: transparent;
+  border-radius: 200px;
+  height: 40px;
+  width: 40px;
+}
+
+/* Actions row: notification button + avatar */
+.actionsRow,
+.actions-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Bell icon contrast: invert/filter on parent button hover/focus/active */
+.actionsRow button :global(img),
+.actionsRow button .img {
+  transition: filter 160ms ease, opacity 160ms ease;
+}
+
+.actionsRow button:hover :global(img),
+.actionsRow button:focus :global(img),
+.actionsRow button:active :global(img),
+.actionsRow button:hover .img,
+.actionsRow button:focus .img,
+.actionsRow button:active .img {
+  filter: brightness(0) invert(1) saturate(0.2) contrast(1);
+}
+
+/* Language dropdown specific styles */
+.languageDropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0px 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 10000;
+  padding: 8px 0;
+  overflow: visible;
+}
+
+.languageOption {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  text-align: left;
+}
+
+.languageOption:hover {
+  background-color: #f3f4f6;
+}
+
+.languageOption.selected {
+  background-color: #f9fafb;
+}

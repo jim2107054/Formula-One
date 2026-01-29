@@ -1,0 +1,25 @@
+[
+  {
+    "id": "7295ecc3-b00b-4f83-ac80-001a6488da3e",
+    "userId": "default-user",
+    "title": "hello",
+    "messages": [
+      {
+        "id": "141160e6-b975-48a7-8640-a8677f2f4f60",
+        "sessionId": "7295ecc3-b00b-4f83-ac80-001a6488da3e",
+        "role": "user",
+        "content": "hello",
+        "timestamp": "2026-01-29T06:17:01.001Z"
+      },
+      {
+        "id": "469cc829-54e1-4510-b6a5-d07c51bfa906",
+        "sessionId": "7295ecc3-b00b-4f83-ac80-001a6488da3e",
+        "role": "assistant",
+        "content": "I'm sorry, I couldn't connect to the AI service.",
+        "timestamp": "2026-01-29T06:17:01.181Z"
+      }
+    ],
+    "createdAt": "2026-01-29T06:16:53.232Z",
+    "updatedAt": "2026-01-29T06:17:01.181Z"
+  }
+]

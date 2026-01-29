@@ -1,0 +1,33 @@
+name: Release Draft
+
+on:
+  push:
+    branches: [ test ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Conventional Changelog Action
+      id: changelog
+      uses: TriPSs/conventional-changelog-action@v3.7.1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        version-file: './package.json'
+        tag-prefix: 'v'
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      if: ${{ steps.changelog.outputs.skipped == 'false' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: "${{ steps.changelog.outputs.tag }}"
+        release_name: "${{ steps.changelog.outputs.tag }}"
+        body: ${{ steps.changelog.outputs.clean_changelog }}
