@@ -1,0 +1,24 @@
+# Placeholder for Docker Compose configuration
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    ports:
+      - "3000:3000"
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    ports:
+      - "4000:4000"
+
+  ai-backend:
+    build:
+      context: .
+      dockerfile: docker/ai-backend.Dockerfile
+    ports:
+      - "8000:8000"

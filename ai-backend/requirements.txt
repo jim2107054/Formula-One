@@ -1,0 +1,2 @@
+# Placeholder for Python dependencies
+# Add required packages here (e.g., fastapi, uvicorn, langchain, etc.)
